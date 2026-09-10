@@ -283,6 +283,7 @@ function restoreCard(u){
 }
 function renderAll(){
   var gC=document.getElementById("gCustom");
+  gC.innerHTML="";
   var lay=mergeLay();
   OTHERS.forEach(regItem);
   (lay.customs||[]).forEach(regItem);
@@ -292,6 +293,7 @@ function renderAll(){
 }
 function drawAuto(list,msg){
   var gA=document.getElementById("gAuto");
+  gA.innerHTML="";   /* 关键：重新渲染前先清空，避免重复堆叠 */
   list.forEach(function(c){regItem(c);renderCard(c,gA)});
   applyOrder(gA,"orderAuto");
   document.getElementById("autoMsg").textContent=msg;
