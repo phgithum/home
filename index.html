@@ -43,7 +43,7 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
 </head>
 <body>
 <h1>工作台</h1>
-<div class="sub">GitHub 站点自动识别 · 点右上「编辑」可拖动排序/改名/隐藏/添加链接（保存在本机浏览器）</div>
+<div class="sub">点右上「编辑」可自定义名称、简介与排序</div>
 <div class="topbar">
   <button class="tbtn edit" onclick="toggleEdit()">✏️ 编辑</button>
   <button class="tbtn" id="resetBtn" style="display:none" onclick="resetAll()">还原默认</button>
@@ -59,7 +59,7 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
 <h2>GitHub Pages 站点 <span class="badge">自动识别</span></h2>
 <div class="grid" id="gAuto"></div>
 <div class="muted" id="autoMsg">正在扫描你名下的 GitHub Pages 站点…</div>
-<footer>工作台入口 · 编辑结果只保存在当前浏览器（清除浏览器数据会还原）<br>要改全局默认（所有人看到），跟我说改 OTHERS 数组即可</footer>
+
 <script>
 var GITHUB_NAME="phgithum";
 var OTHERS=[
