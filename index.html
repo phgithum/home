@@ -9,47 +9,87 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);font-family:"Segoe UI","Microsoft YaHei",sans-serif;color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 16px}
 h1{font-size:22px;font-weight:700;margin-bottom:6px}
-.sub{font-size:13px;color:#889;margin-bottom:32px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;width:100%;max-width:960px}
-.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;cursor:pointer;transition:all .18s;position:relative}
+.sub{font-size:13px;color:#889;margin-bottom:28px;text-align:center}
+h2{font-size:13px;color:#889;font-weight:600;width:100%;max-width:960px;margin:18px 0 10px;letter-spacing:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;width:100%;max-width:960px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:all .18s;position:relative;animation:in .35s both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .card:hover{border-color:var(--main);transform:translateY(-3px);box-shadow:0 8px 20px rgba(36,86,196,.1)}
-.card .name{font-size:16px;font-weight:700;margin-bottom:6px}
-.card .desc{font-size:12px;color:#889;line-height:1.6;margin-bottom:14px}
+.card .name{font-size:15px;font-weight:700;margin-bottom:5px;padding-right:64px}
+.card .desc{font-size:12px;color:#889;line-height:1.6;margin-bottom:10px;word-break:break-all}
 .card .go{font-size:12px;color:var(--main);font-weight:600}
 .card .copy{position:absolute;top:12px;right:12px;font-size:11px;color:#889;background:#fff;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer}
 .card .copy:hover{color:var(--main);border-color:var(--main)}
-footer{margin-top:40px;font-size:12px;color:#aab}
+.badge{display:inline-block;font-size:10px;color:#889;background:#f0f2f6;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.muted{font-size:12px;color:#aab;width:100%;max-width:960px}
+footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1.8}
 </style>
 </head>
 <body>
 <h1>工作台</h1>
-<div class="sub">点卡片直达 · 点复制分享对应链接</div>
-<div class="grid" id="grid"></div>
-<footer>工作台入口 · 加新系统在下方 LINKS 里加一行即可</footer>
+<div class="sub">GitHub 上的站点自动识别 · 其余托管链接在 OTHERS 里加一行即可</div>
+<h2>自定义域名站点</h2>
+<div class="grid" id="gCustom"></div>
+<h2>GitHub Pages 站点 <span class="badge">自动识别</span></h2>
+<div class="grid" id="gAuto"></div>
+<div class="muted" id="autoMsg">正在扫描你名下的 GitHub Pages 站点…</div>
+<footer>工作台入口 · 修改 OTHERS 数组可增删自定义链接<br>GITHUB_NAME 可换成其他账号，自动跟随</footer>
 <script>
-var LINKS=[
- {name:"在线考试系统",desc:"学生答题 · 试卷管理 · 成绩分析看板",url:"https://phgithum.github.io/quiz/"},
- {name:"聚合后台",desc:"账户签发 · 游客授权 · 各系统管理入口",url:"https://phgithum.github.io/admin-console/"},
- {name:"知识库",desc:"客服知识库前台（游客可试用）",url:"https://zhishiku.phwork.qd.je"},
- {name:"MUJI 知识库",desc:"MUJI 客服知识库",url:"https://mjzsk.phwork.qd.je"},
- {name:"看护记录",desc:"排班 · 交接班 · 护理记录",url:"https://phgithum.github.io/care-logs/"},
- {name:"定时提醒后台",desc:"看护任务与交接班提醒配置",url:"https://phgithum.github.io/care-logs/admin.html"}
+var GITHUB_NAME="phgithum";
+/* 无法自动探测的（腾讯云/EdgeOne/仓库内子页面等）手维护在这里 */
+var OTHERS=[
+ {name:"知识库（自定义域名）",desc:"客服知识库前台 · 游客可试用",url:"https://zhishiku.phwork.qd.je"},
+ {name:"MUJI 知识库",desc:"MUJI 客服知识库（自定义域名）",url:"https://mjzsk.phwork.qd.je"},
+ {name:"看护·定时提醒后台",desc:"任务提醒与交接班配置页",url:"https://phgithum.github.io/care-logs/admin.html"}
 ];
-var grid=document.getElementById("grid");
-LINKS.forEach(function(l){
+/* 自定义域名归属映射：域名与仓库的对应，用于归类展示 */
+var CUSTOM_DOMAINS={"360-kb":"https://zhishiku.phwork.qd.je","MUJI":"https://mjzsk.phwork.qd.je"};
+
+function card(c,target){
   var d=document.createElement("div");
-  d.className="card";
-  d.innerHTML='<span class="copy">复制链接</span><div class="name">'+l.name+'</div><div class="desc">'+l.desc+'</div><div class="go">进入 →</div>';
+  d.className="card";d.style.animationDelay=(Math.random()*0.2)+"s";
+  d.innerHTML='<span class="copy">复制链接</span><div class="name">'+esc(c.name)+'<span class="badge">'+(c.tag||"")+'</span></div><div class="desc">'+esc(c.desc||c.url)+'</div><div class="go">进入 →</div>';
   d.onclick=function(e){
     if(e.target.className==="copy"){
       e.stopPropagation();
-      (navigator.clipboard?navigator.clipboard.writeText(l.url):Promise.reject()).then(function(){e.target.textContent="已复制";setTimeout(function(){e.target.textContent="复制链接"},1200)}).catch(function(){prompt("复制此链接：",l.url)});
+      (navigator.clipboard?navigator.clipboard.writeText(c.url):Promise.reject()).then(function(){e.target.textContent="已复制";setTimeout(function(){e.target.textContent="复制链接"},1200)}).catch(function(){prompt("复制此链接：",c.url)});
       return;
     }
-    window.open(l.url,"_blank");
+    window.open(c.url,"_blank");
   };
-  grid.appendChild(d);
-});
+  target.appendChild(d);
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function fmtRepo(r){
+  var url=CUSTOM_DOMAINS[r.name]||r.homepage||("https://"+GITHUB_NAME+".github.io/"+r.name+"/");
+  if(url.indexOf("http")!==0)url="https://"+url;
+  return {name:r.name,desc:r.description||"GitHub Pages 站点",url:url,tag:"Pages"};
+}
+/* 1) 固定自定义域名区 */
+OTHERS.forEach(function(c){card(c,document.getElementById("gCustom"))});
+/* 2) 自动扫描 GitHub Pages 仓库（公开API免token，缓存1小时） */
+var CACHE="portal_repos_v1";
+function render(list){
+  var g=document.getElementById("gAuto");g.innerHTML="";
+  list.sort(function(a,b){return a.name.localeCompare(b.name)});
+  list.forEach(function(c){card(c,g)});
+  document.getElementById("autoMsg").textContent="已自动识别 "+list.length+" 个 GitHub Pages 站点（每小时刷新一次）";
+}
+try{
+  var c=JSON.parse(localStorage.getItem(CACHE)||"null");
+  if(c&&Date.now()-c.t<3600e3){render(c.list)}
+}catch(e){}
+fetch("https://api.github.com/users/"+GITHUB_NAME+"/repos?per_page=100&sort=updated&t="+Date.now())
+  .then(function(r){return r.ok?r.json():[]})
+  .then(function(repos){
+    var pages=(repos||[]).filter(function(r){return r.has_pages});
+    var list=pages.map(fmtRepo);
+    /* 仓库子页面补充（同仓库多页面的，手动登记） */
+    list.push({name:"care-logs/admin",desc:"看护任务与交接班提醒配置页",url:"https://phgithum.github.io/care-logs/admin.html",tag:"子页面"});
+    try{localStorage.setItem(CACHE,JSON.stringify({t:Date.now(),list:list}))}catch(e){}
+    render(list);
+  })
+  .catch(function(){document.getElementById("autoMsg").textContent="GitHub 扫描失败（网络原因），下方为缓存或空列表";});
 </script>
 </body>
 </html>
