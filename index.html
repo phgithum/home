@@ -56,7 +56,11 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
 </div>
 <div id="hiddenSec" style="display:none;width:100%;max-width:960px">
   <h2 style="display:flex;align-items:center;justify-content:space-between">已隐藏的页面
-    <button class="tbtn" style="font-weight:400" onclick="closeHidden()">收起</button>
+    <span>
+      <button class="tbtn" style="font-weight:400;margin-right:6px" onclick="restoreAll()">全部恢复显示</button>
+      <button class="tbtn" style="font-weight:400;margin-right:6px;color:#d33;border-color:#f3cfcf" onclick="resetLocal()">重置本机布局</button>
+      <button class="tbtn" style="font-weight:400" onclick="closeHidden()">收起</button>
+    </span>
   </h2>
   <div class="grid" id="gHidden"></div>
   <div class="muted" id="hiddenMsg"></div>
@@ -68,6 +72,7 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
 <div class="muted" id="autoMsg">正在扫描你名下的 GitHub Pages 站点…</div>
 <div id="hiddenBar" style="width:100%;max-width:960px;margin-top:26px;text-align:center">
   <button class="tbtn" onclick="openHidden()">🔒 打开隐藏页面</button>
+  <button class="tbtn" style="margin-left:8px" onclick="resetLocal2()">↺ 重置本机布局</button>
 </div>
 
 <script>
@@ -254,6 +259,21 @@ function renderHidden(){
     d.onclick=function(){window.open(u,"_blank")};
     g.appendChild(d);
   });
+}
+function resetLocal2(){ requireAdmin(function(){resetLocal()}); }
+function restoreAll(){
+  if(!confirm("把本机隐藏的页面全部恢复显示？"))return;
+  var l=loadLay();
+  var all=mergeLay().hidden||[];
+  l.shown=l.shown||[];
+  all.forEach(function(u){ if(l.shown.indexOf(u)<0)l.shown.push(u); });
+  l.hidden=[];
+  saveLay(l); location.reload();
+}
+function resetLocal(){
+  if(!confirm("重置本机布局？本机所有的改动（隐藏、改名、排序、自定义链接）都会清除，恢复到全局默认。"))return;
+  try{localStorage.removeItem(SS)}catch(e){}
+  location.reload();
 }
 function restoreCard(u){
   var l=loadLay();
