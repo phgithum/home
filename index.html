@@ -54,6 +54,16 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
   <input id="afUrl" placeholder="链接（https:// 开头）">
   <button onclick="addCustom()">添加</button>
 </div>
+<div id="hiddenBar" style="width:100%;max-width:960px;margin-top:26px;text-align:center">
+  <button class="tbtn" onclick="openHidden()">🔒 打开隐藏页面</button>
+</div>
+<div id="hiddenSec" style="display:none;width:100%;max-width:960px">
+  <h2 style="display:flex;align-items:center;justify-content:space-between">已隐藏的页面
+    <button class="tbtn" style="font-weight:400" onclick="closeHidden()">收起</button>
+  </h2>
+  <div class="grid" id="gHidden"></div>
+  <div class="muted" id="hiddenMsg"></div>
+</div>
 <h2>自定义域名 / 其他托管站点</h2>
 <div class="grid" id="gCustom"></div>
 <h2>GitHub Pages 站点 <span class="badge">自动识别</span></h2>
@@ -76,7 +86,8 @@ function mergeLay(){
   var g=GLOBAL,l=loadLay(),m={};
   m.names=Object.assign({},g.names||{},l.names||{});
   m.descs=Object.assign({},g.descs||{},l.descs||{});
-  m.hidden=(l.hidden&&l.hidden.length)?l.hidden:(g.hidden||[]);
+  var gh=g.hidden||[],lh=l.hidden||[],sh=l.shown||[];
+  m.hidden=gh.concat(lh).filter(function(u,i,a){return a.indexOf(u)===i&&sh.indexOf(u)<0});
   m.customs=(g.customs||[]).concat(l.customs||[]);
   m.orderCustom=l.orderCustom&&l.orderCustom.length?l.orderCustom:(g.orderCustom||[]);
   m.orderAuto=l.orderAuto&&l.orderAuto.length?l.orderAuto:(g.orderAuto||[]);
@@ -103,8 +114,10 @@ function ghPutFile(path,content,cb){
 }
 function saveGlobal(){
   if(sessionStorage.getItem("portal_admin")!=="1"){alert("需要超管密码");return}
-  var l=loadLay();
-  var out={siteTitle:l.siteTitle||"",names:l.names||{},descs:l.descs||{},hidden:l.hidden||[],customs:l.customs||[],orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
+  var l=mergeLay();
+  var cs=[],seen={};
+  (l.customs||[]).forEach(function(c){if(c&&c.url&&!seen[c.url]){seen[c.url]=1;cs.push(c)}});
+  var out={siteTitle:l.siteTitle||"",names:l.names||{},descs:l.descs||{},hidden:l.hidden||[],customs:cs,orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
   ghPutFile("layout.json",out,function(){});
 }
 function saveLay(l){try{localStorage.setItem(SS,JSON.stringify(l))}catch(e){}}
@@ -202,6 +215,40 @@ function addCustom(){
   var n=document.getElementById("afName").value.trim(),u=document.getElementById("afUrl").value.trim();
   if(!n||!/^https?:\/\//.test(u)){alert("请填写名称和以 https:// 开头的链接");return}
   var l=loadLay();l.customs=l.customs||[];l.customs.push({name:n,desc:"自定义链接",url:u});saveLay(l);location.reload();
+}
+function openHidden(){
+  requireAdmin(function(){
+    renderHidden();
+    document.getElementById("hiddenSec").style.display="";
+    document.getElementById("hiddenBar").style.display="none";
+  });
+}
+function closeHidden(){
+  document.getElementById("hiddenSec").style.display="none";
+  document.getElementById("hiddenBar").style.display="";
+}
+function renderHidden(){
+  var g=document.getElementById("gHidden"); g.innerHTML="";
+  var list=mergeLay().hidden||[];
+  document.getElementById("hiddenMsg").textContent=list.length?("共 "+list.length+" 个隐藏页面，点「恢复显示」即可回到主页"):"当前没有被隐藏的页面";
+  list.forEach(function(u){
+    var it=ALL[u]||{name:u,desc:u,url:u};
+    var d=document.createElement("div"); d.className="card";
+    var nm=document.createElement("div"); nm.className="name";
+    nm.innerHTML=esc((mergeLay().names||{})[u]||it.name)+'<span class="badge">已隐藏</span>';
+    var ds=document.createElement("div"); ds.className="desc"; ds.textContent=(mergeLay().descs||{})[u]||it.desc||u;
+    var bt=document.createElement("button"); bt.className="tbtn"; bt.style.marginTop="8px"; bt.textContent="恢复显示";
+    bt.onclick=function(e){e.stopPropagation();restoreCard(u)};
+    d.appendChild(nm);d.appendChild(ds);d.appendChild(bt);
+    d.onclick=function(){window.open(u,"_blank")};
+    g.appendChild(d);
+  });
+}
+function restoreCard(u){
+  var l=loadLay();
+  l.shown=l.shown||[]; if(l.shown.indexOf(u)<0)l.shown.push(u);
+  l.hidden=(l.hidden||[]).filter(function(x){return x!==u});
+  saveLay(l); location.reload();
 }
 function renderAll(){
   var gC=document.getElementById("gCustom");
