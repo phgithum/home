@@ -29,6 +29,7 @@ body.editing .tbtn.edit{background:var(--main);color:#fff;border-color:var(--mai
 body.editing .card{cursor:grab;border-style:dashed}
 body.editing .card:hover{transform:none}
 body.editing .card .copy{display:none}
+body.editing .card .desc{cursor:text;border-bottom:1px dashed #c8cede;padding-bottom:2px}
 .card .hidebtn{display:none;position:absolute;top:12px;right:12px;font-size:11px;color:#d33;background:#fff;border:1px solid #eec;border-radius:6px;padding:3px 8px;cursor:pointer}
 body.editing .card .hidebtn{display:block}
 .card.dragging{opacity:.4}
@@ -74,6 +75,7 @@ function mergeLay(){
   /* 本机覆盖全局：合并出生效布局 */
   var g=GLOBAL,l=loadLay(),m={};
   m.names=Object.assign({},g.names||{},l.names||{});
+  m.descs=Object.assign({},g.descs||{},l.descs||{});
   m.hidden=(l.hidden&&l.hidden.length)?l.hidden:(g.hidden||[]);
   m.customs=(g.customs||[]).concat(l.customs||[]);
   m.orderCustom=l.orderCustom&&l.orderCustom.length?l.orderCustom:(g.orderCustom||[]);
@@ -102,7 +104,7 @@ function ghPutFile(path,content,cb){
 function saveGlobal(){
   if(sessionStorage.getItem("portal_admin")!=="1"){alert("需要超管密码");return}
   var l=loadLay();
-  var out={siteTitle:l.siteTitle||"",names:l.names||{},hidden:l.hidden||[],customs:l.customs||[],orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
+  var out={siteTitle:l.siteTitle||"",names:l.names||{},descs:l.descs||{},hidden:l.hidden||[],customs:l.customs||[],orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
   ghPutFile("layout.json",out,function(){});
 }
 function saveLay(l){try{localStorage.setItem(SS,JSON.stringify(l))}catch(e){}}
@@ -143,7 +145,8 @@ function renderCard(it,target){
   d.className="card";d.draggable=document.body.classList.contains("editing");d.style.touchAction="none";
   d.dataset.url=it.url;
   var name=mergeLay().names[it.url]||it.name;
-  d.innerHTML='<button class="hidebtn" title="隐藏">隐藏</button><span class="copy">复制链接</span><div class="name">'+esc(name)+'<span class="badge">'+(it.tag||"")+'</span></div><div class="desc">'+esc(it.desc||it.url)+'</div><div class="go">进入 →</div>';
+  var desc=mergeLay().descs[it.url]||it.desc||it.url;
+  d.innerHTML='<button class="hidebtn" title="隐藏">隐藏</button><span class="copy">复制链接</span><div class="name">'+esc(name)+'<span class="badge">'+(it.tag||"")+'</span></div><div class="desc">'+esc(desc)+'</div><div class="go">进入 →</div>';
   d.onclick=function(e){
     if(e.target.className==="hidebtn"){hideCard(it.url);return}
     if(e.target.className==="copy"){
@@ -156,6 +159,11 @@ function renderCard(it,target){
   };
   d.ondblclick=function(e){
     if(!document.body.classList.contains("editing"))return;
+    if(e.target.className==="desc"){
+      var t=prompt("修改简介：",desc);
+      if(t!==null){var dl=loadLay();dl.descs=dl.descs||{};dl.descs[it.url]=t;saveLay(dl);location.reload()}
+      return;
+    }
     var n=prompt("修改名称：",name);
     if(n){var l=loadLay();l.names=l.names||{};l.names[it.url]=n;saveLay(l);location.reload()}
   };
