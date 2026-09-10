@@ -167,6 +167,12 @@ function fetchAuto(){
     })
     .catch(function(){drawAuto(lay._auto||[],"GitHub 扫描失败（网络原因），显示上次缓存")});
 }
+document.querySelector("h1").ondblclick=function(){
+  if(!document.body.classList.contains("editing"))return;
+  var n=prompt("修改站点标题：",this.textContent);
+  if(n){var l=loadLay();l.siteTitle=n;saveLay(l);location.reload()}
+};
+var _t=(loadLay().siteTitle||"");if(_t)document.querySelector("h1").textContent=_t;document.title=_t?_t+" · 入口导航":"工作台 · 入口导航";
 renderAll();
 if(loadLay()._auto){drawAuto(loadLay()._auto,"已加载缓存站点列表");fetchAuto()}
 else fetchAuto();
