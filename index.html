@@ -72,6 +72,17 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
 
 <script>
 var GITHUB_NAME="phgithum";
+/* fallback list: used when GitHub API is rate-limited, so cards never shrink */
+var FALLBACK=[
+ {name:"home",desc:"工作台入口导航",url:"https://phgithum.github.io/home/",tag:"Pages"},
+ {name:"quiz",desc:"在线考试系统（教师后台 / 学生答题 / 成绩看板）",url:"https://phgithum.github.io/quiz/",tag:"Pages"},
+ {name:"admin-console",desc:"聚合管理后台（账户签发 / 游客授权 / 内嵌知识库）",url:"https://phgithum.github.io/admin-console/",tag:"Pages"},
+ {name:"360-kb",desc:"客服知识库前台（自定义域名）",url:"https://zhishiku.phwork.qd.je",tag:"Pages"},
+ {name:"MUJI",desc:"MUJI 商品知识库（自定义域名）",url:"https://mjzsk.phwork.qd.je",tag:"Pages"},
+ {name:"care-logs",desc:"看护记录",url:"https://phgithum.github.io/care-logs/",tag:"Pages"},
+ {name:"care-logs/admin",desc:"看护任务与交接班提醒配置页",url:"https://phgithum.github.io/care-logs/admin.html",tag:"子页面"},
+ {name:"huashu-prompts",desc:"话术小助手",url:"https://phgithum.github.io/huashu-prompts/",tag:"Pages"}
+];
 var OTHERS=[
  {name:"知识库（自定义域名）",desc:"客服知识库前台 · 游客可试用",url:"https://zhishiku.phwork.qd.je"},
  {name:"MUJI 知识库",desc:"MUJI 客服知识库（自定义域名）",url:"https://mjzsk.phwork.qd.je"}
@@ -265,21 +276,34 @@ function drawAuto(list,msg){
   applyOrder(gA,"orderAuto");
   document.getElementById("autoMsg").textContent=msg;
 }
+function mergeList(){
+  var seen={},out=[];
+  [].slice.call(arguments).forEach(function(arr){
+    (arr||[]).forEach(function(it){ if(it&&it.url&&!seen[it.url]){seen[it.url]=1;out.push(it)} });
+  });
+  return out;
+}
 function fetchAuto(){
   var lay=loadLay();
+  var prev=lay._auto||[];
   fetch("https://api.github.com/users/"+GITHUB_NAME+"/repos?per_page=100&sort=updated&t="+Date.now())
-    .then(function(r){return r.ok?r.json():[]})
+    .then(function(r){ if(!r.ok)throw new Error("http "+r.status); return r.json(); })
     .then(function(repos){
-      var list=(repos||[]).filter(function(r){return r.has_pages}).map(function(r){
+      if(!Array.isArray(repos))throw new Error("bad payload");
+      var live=repos.filter(function(r){return r.has_pages}).map(function(r){
         var url=CUSTOM_DOMAINS[r.name]||r.homepage||("https://"+GITHUB_NAME+".github.io/"+r.name+"/");
         if(url.indexOf("http")!==0)url="https://"+url;
         return {name:r.name,desc:r.description||"GitHub Pages 站点",url:url,tag:"Pages"};
       });
-      list.push({name:"care-logs/admin",desc:"看护任务与交接班提醒配置页",url:"https://phgithum.github.io/care-logs/admin.html",tag:"子页面"});
+      live.push({name:"care-logs/admin",desc:"看护任务与交接班提醒配置页",url:"https://phgithum.github.io/care-logs/admin.html",tag:"子页面"});
+      var list=mergeList(FALLBACK,prev,live);
       try{lay._auto=list;saveLay(lay)}catch(e){}
-      drawAuto(list,"已自动识别 "+list.length+" 个 GitHub Pages 站点");
+      drawAuto(list,"已识别 "+list.length+" 个站点");
     })
-    .catch(function(){drawAuto(lay._auto||[],"GitHub 扫描失败（网络原因），显示上次缓存")});
+    .catch(function(){
+      var list=mergeList(FALLBACK,prev);
+      drawAuto(list,"实时扫描失败（接口限流），已显示保存的站点");
+    });
 }
 fetch("https://raw.githubusercontent.com/phgithum/home/main/layout.json?t="+Date.now())
   .then(function(r){return r.ok?r.json():{}})
@@ -289,8 +313,8 @@ function boot(){
   var m=mergeLay();
   if(m.siteTitle){document.querySelector("h1").textContent=m.siteTitle;document.title=m.siteTitle+" · 入口导航"}
   renderAll();
-  if(m._auto){drawAuto(m._auto,"已加载缓存站点列表");fetchAuto()}
-  else fetchAuto();
+  drawAuto(mergeList(FALLBACK,m._auto||[]),"正在实时扫描…");
+  fetchAuto();
 }
 </script>
 </body>
