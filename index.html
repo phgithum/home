@@ -125,7 +125,9 @@ function toggleEdit(){
   toggleEditInner();
 }
 function toggleEditInner(){
+  var on=!document.body.classList.contains("editing");
   document.body.classList.toggle("editing");
+  [].slice.call(document.querySelectorAll(".card")).forEach(function(c){c.draggable=on;});
   var on=document.body.classList.contains("editing");
   document.querySelector(".tbtn.edit").textContent=on?"✅ 完成编辑":"✏️ 编辑";
   document.getElementById("resetBtn").style.display=on?"":"none";
@@ -138,7 +140,7 @@ function renderCard(it,target){
   var lay=mergeLay();
   if((lay.hidden||[]).indexOf(it.url)>=0)return;
   var d=document.createElement("div");
-  d.className="card";d.draggable=document.body.classList.contains("editing");
+  d.className="card";d.draggable=document.body.classList.contains("editing");d.style.touchAction="none";
   d.dataset.url=it.url;
   var name=mergeLay().names[it.url]||it.name;
   d.innerHTML='<button class="hidebtn" title="隐藏">隐藏</button><span class="copy">复制链接</span><div class="name">'+esc(name)+'<span class="badge">'+(it.tag||"")+'</span></div><div class="desc">'+esc(it.desc||it.url)+'</div><div class="go">进入 →</div>';
