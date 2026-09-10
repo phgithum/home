@@ -46,6 +46,7 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
 <div class="topbar">
   <button class="tbtn edit" onclick="toggleEdit()">✏️ 编辑</button>
   <button class="tbtn" id="resetBtn" style="display:none" onclick="resetAll()">还原默认</button>
+  <button class="tbtn" id="globalBtn" style="display:none;background:#18a058;color:#fff;border-color:#18a058" onclick="saveGlobal()">☁ 保存为全局</button>
 </div>
 <div class="addform">
   <input id="afName" placeholder="名称（如：腾讯托管站）">
@@ -67,24 +68,60 @@ var OTHERS=[
 var CUSTOM_DOMAINS={"360-kb":"https://zhishiku.phwork.qd.je","MUJI":"https://mjzsk.phwork.qd.je"};
 var SS="portal_layout_v1";
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+var GLOBAL={};
 function loadLay(){try{return JSON.parse(localStorage.getItem(SS)||"{}")}catch(e){return{}}}
+function mergeLay(){
+  /* 本机覆盖全局：合并出生效布局 */
+  var g=GLOBAL,l=loadLay(),m={};
+  m.names=Object.assign({},g.names||{},l.names||{});
+  m.hidden=(l.hidden&&l.hidden.length)?l.hidden:(g.hidden||[]);
+  m.customs=(g.customs||[]).concat(l.customs||[]);
+  m.orderCustom=l.orderCustom&&l.orderCustom.length?l.orderCustom:(g.orderCustom||[]);
+  m.orderAuto=l.orderAuto&&l.orderAuto.length?l.orderAuto:(g.orderAuto||[]);
+  m.siteTitle=l.siteTitle||g.siteTitle||"";
+  m._auto=l._auto||g._auto||[];
+  return m;
+}
+function ghPutFile(path,content,cb){
+  var tok=localStorage.getItem("portal_tok");
+  if(!tok){tok=prompt("首次使用请粘贴你的 GitHub token（将只保存在本机浏览器）\n获取：github.com → Settings → Developer settings → Personal access tokens → 勾选 repo 权限");if(!tok)return;localStorage.setItem("portal_tok",tok)}
+  var x=new XMLHttpRequest();
+  x.open("GET","https://api.github.com/repos/phgithum/home/contents/"+path);
+  x.setRequestHeader("Authorization","token "+tok);
+  x.onload=function(){
+    var sha=null;try{sha=JSON.parse(x.responseText).sha}catch(e){}
+    var x2=new XMLHttpRequest();
+    x2.open("PUT","https://api.github.com/repos/phgithum/home/contents/"+path);
+    x2.setRequestHeader("Authorization","token "+tok);
+    x2.setRequestHeader("Content-Type","application/json");
+    x2.onload=function(){if(x2.status>=200&&x2.status<300){alert("已保存为全局默认，所有人打开都一样（Pages 刷新需1分钟）");cb&&cb()}else{alert("保存失败 "+x2.status+"（token 权限不足？）")}};
+    x2.send(JSON.stringify({message:"layout update",branch:"main",content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2)))),sha:sha}));
+  };
+  x.send();
+}
+function saveGlobal(){
+  var l=loadLay();
+  var out={siteTitle:l.siteTitle||"",names:l.names||{},hidden:l.hidden||[],customs:l.customs||[],orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
+  ghPutFile("layout.json",out,function(){});
+}
 function saveLay(l){try{localStorage.setItem(SS,JSON.stringify(l))}catch(e){}}
 function toggleEdit(){
   document.body.classList.toggle("editing");
   var on=document.body.classList.contains("editing");
   document.querySelector(".tbtn.edit").textContent=on?"✅ 完成编辑":"✏️ 编辑";
   document.getElementById("resetBtn").style.display=on?"":"none";
+  document.getElementById("globalBtn").style.display=on?"":"none";
 }
 function resetAll(){if(confirm("恢复默认排版？拖的顺序、改名、隐藏和自定义链接都会清除。")){localStorage.removeItem(SS);location.reload()}}
 var ALL={};
 function regItem(it){ALL[it.url]=it}
 function renderCard(it,target){
-  var lay=loadLay();
+  var lay=mergeLay();
   if((lay.hidden||[]).indexOf(it.url)>=0)return;
   var d=document.createElement("div");
   d.className="card";d.draggable=document.body.classList.contains("editing");
   d.dataset.url=it.url;
-  var name=(lay.names||{})[it.url]||it.name;
+  var name=mergeLay().names[it.url]||it.name;
   d.innerHTML='<button class="hidebtn" title="隐藏">隐藏</button><span class="copy">复制链接</span><div class="name">'+esc(name)+'<span class="badge">'+(it.tag||"")+'</span></div><div class="desc">'+esc(it.desc||it.url)+'</div><div class="go">进入 →</div>';
   d.onclick=function(e){
     if(e.target.className==="hidebtn"){hideCard(it.url);return}
@@ -138,7 +175,7 @@ function addCustom(){
 }
 function renderAll(){
   var gC=document.getElementById("gCustom");
-  var lay=loadLay();
+  var lay=mergeLay();
   OTHERS.forEach(regItem);
   (lay.customs||[]).forEach(regItem);
   (lay.customs||[]).forEach(function(c){renderCard(c,gC)});
@@ -167,15 +204,17 @@ function fetchAuto(){
     })
     .catch(function(){drawAuto(lay._auto||[],"GitHub 扫描失败（网络原因），显示上次缓存")});
 }
-document.querySelector("h1").ondblclick=function(){
-  if(!document.body.classList.contains("editing"))return;
-  var n=prompt("修改站点标题：",this.textContent);
-  if(n){var l=loadLay();l.siteTitle=n;saveLay(l);location.reload()}
-};
-var _t=(loadLay().siteTitle||"");if(_t)document.querySelector("h1").textContent=_t;document.title=_t?_t+" · 入口导航":"工作台 · 入口导航";
-renderAll();
-if(loadLay()._auto){drawAuto(loadLay()._auto,"已加载缓存站点列表");fetchAuto()}
-else fetchAuto();
+fetch("https://raw.githubusercontent.com/phgithum/home/main/layout.json?t="+Date.now())
+  .then(function(r){return r.ok?r.json():{}})
+  .then(function(g){GLOBAL=g||{};boot()})
+  .catch(function(){boot()});
+function boot(){
+  var m=mergeLay();
+  if(m.siteTitle){document.querySelector("h1").textContent=m.siteTitle;document.title=m.siteTitle+" · 入口导航"}
+  renderAll();
+  if(m._auto){drawAuto(m._auto,"已加载缓存站点列表");fetchAuto()}
+  else fetchAuto();
+}
 </script>
 </body>
 </html>
