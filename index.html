@@ -100,12 +100,31 @@ function ghPutFile(path,content,cb){
   x.send();
 }
 function saveGlobal(){
+  if(sessionStorage.getItem("portal_admin")!=="1"){alert("需要超管密码");return}
   var l=loadLay();
   var out={siteTitle:l.siteTitle||"",names:l.names||{},hidden:l.hidden||[],customs:l.customs||[],orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
   ghPutFile("layout.json",out,function(){});
 }
 function saveLay(l){try{localStorage.setItem(SS,JSON.stringify(l))}catch(e){}}
+function sha256(s){return crypto.subtle?crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return [].map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")}):Promise.reject()}
+function requireAdmin(cb){
+  if(sessionStorage.getItem("portal_admin")==="1")return cb();
+  var p=prompt("此操作需要超管密码：","");
+  if(p===null)return;
+  sha256(p).then(function(hx){
+    if(hx==="9363af785c5ecaa8151869e729bc470fffd16274b3ad82b02f5eb050817a9957"){
+      sessionStorage.setItem("portal_admin","1");cb();
+    }else{alert("密码错误")}
+  }).catch(function(){alert("浏览器不支持，请换 Chrome/Edge")});
+}
 function toggleEdit(){
+  if(!document.body.classList.contains("editing")){
+    requireAdmin(function(){toggleEditInner()});
+    return;
+  }
+  toggleEditInner();
+}
+function toggleEditInner(){
   document.body.classList.toggle("editing");
   var on=document.body.classList.contains("editing");
   document.querySelector(".tbtn.edit").textContent=on?"✅ 完成编辑":"✏️ 编辑";
@@ -169,6 +188,7 @@ function applyOrder(grid,key){
   });
 }
 function addCustom(){
+  if(sessionStorage.getItem("portal_admin")!=="1"){alert("需要超管密码");return}
   var n=document.getElementById("afName").value.trim(),u=document.getElementById("afUrl").value.trim();
   if(!n||!/^https?:\/\//.test(u)){alert("请填写名称和以 https:// 开头的链接");return}
   var l=loadLay();l.customs=l.customs||[];l.customs.push({name:n,desc:"自定义链接",url:u});saveLay(l);location.reload();
