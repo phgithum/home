@@ -48,6 +48,7 @@ footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1
   <button class="tbtn edit" onclick="toggleEdit()">✏️ 编辑</button>
   <button class="tbtn" id="resetBtn" style="display:none" onclick="resetAll()">还原默认</button>
   <button class="tbtn" id="globalBtn" style="display:none;background:#18a058;color:#fff;border-color:#18a058" onclick="saveGlobal()">☁ 保存为全局</button>
+  <button class="tbtn" id="tokBtn" style="display:none" onclick="resetPortalToken()">重设 token</button>
 </div>
 <div class="addform">
   <input id="afName" placeholder="名称（如：腾讯托管站）">
@@ -111,9 +112,11 @@ function mergeLay(){
   m._auto=l._auto||g._auto||[];
   return m;
 }
+function askTok(){var t=prompt("请粘贴 GitHub token（只保存在本机浏览器，不会上传）\n\n获取：github.com → Settings → Developer settings → Personal access tokens\n· 选 classic，勾选 repo；或 fine-grained 且授予 Contents: Read and write\n\n粘错或权限不够，随时可点「重设 token」重来");return t?t.trim():null}
+function resetPortalToken(){localStorage.removeItem("portal_tok");var t=askTok();if(t){localStorage.setItem("portal_tok",t);alert("新 token 已保存，请再点一次「保存为全局」")}else{alert("已清除本机 token，下次保存时会重新询问")}}
 function ghPutFile(path,content,cb){
   var tok=localStorage.getItem("portal_tok");
-  if(!tok){tok=prompt("首次使用请粘贴你的 GitHub token（将只保存在本机浏览器）\n获取：github.com → Settings → Developer settings → Personal access tokens → 勾选 repo 权限");if(!tok)return;localStorage.setItem("portal_tok",tok)}
+  if(!tok){tok=askTok();if(!tok)return;localStorage.setItem("portal_tok",tok)}
   var x=new XMLHttpRequest();
   x.open("GET","https://api.github.com/repos/phgithum/home/contents/"+path);
   x.setRequestHeader("Authorization","token "+tok);
@@ -123,7 +126,7 @@ function ghPutFile(path,content,cb){
     x2.open("PUT","https://api.github.com/repos/phgithum/home/contents/"+path);
     x2.setRequestHeader("Authorization","token "+tok);
     x2.setRequestHeader("Content-Type","application/json");
-    x2.onload=function(){if(x2.status>=200&&x2.status<300){alert("已保存为全局默认，所有人打开都一样（Pages 刷新需1分钟）");cb&&cb()}else{alert("保存失败 "+x2.status+"（token 权限不足？）")}};
+    x2.onload=function(){if(x2.status>=200&&x2.status<300){alert("已保存为全局默认，所有人打开都一样（Pages 刷新需1分钟）");cb&&cb()}else{if(x2.status===401||x2.status===403||x2.status===404){if(confirm("保存失败 "+x2.status+"：本机保存的 token 无效，或没有 home 仓库的写入权限。\n\n是否清除本机 token 并重新输入？")){localStorage.removeItem("portal_tok");var nt=askTok();if(nt){localStorage.setItem("portal_tok",nt);alert("新 token 已保存，请再点一次「保存为全局」")}}}else{alert("保存失败 "+x2.status)}}};
     x2.send(JSON.stringify({message:"layout update",branch:"main",content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2)))),sha:sha}));
   };
   x.send();
@@ -162,7 +165,7 @@ function toggleEditInner(){
   var on=document.body.classList.contains("editing");
   document.querySelector(".tbtn.edit").textContent=on?"✅ 完成编辑":"✏️ 编辑";
   document.getElementById("resetBtn").style.display=on?"":"none";
-  document.getElementById("globalBtn").style.display=on?"":"none";
+  document.getElementById("globalBtn").style.display=on?"":"none";document.getElementById("tokBtn").style.display=on?"":"none";
 }
 function resetAll(){if(confirm("恢复默认排版？拖的顺序、改名、隐藏和自定义链接都会清除。")){localStorage.removeItem(SS);location.reload()}}
 var ALL={};
