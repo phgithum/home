@@ -1,0 +1,25 @@
+{
+ "names": {
+  "https://zhishiku.phwork.qd.je": "知识库",
+  "https://phgithum.github.io/home/": "主页",
+  "https://phgithum.github.io/quiz/": "超级考试系统？",
+  "https://phgithum.github.io/admin-console/": "超级后台",
+  "https://phgithum.github.io/huashu-prompts/": "知识检索台"
+ },
+ "descs": {
+  "https://zhishiku.phwork.qd.je": "自研客服知识库，整合高效检索、场景话术、案例沉淀能力，支持业务知识统一维护与快速更新。",
+  "https://mjzsk.phwork.qd.je": "同样的自研客服知识库，整合高效检索、场景话术、案例沉淀能力，支持业务知识统一维护与快速更新。",
+  "https://phgithum.github.io/home/": "到达你想要去的一切地方~",
+  "https://phgithum.github.io/admin-console/": "聚合管理后台（账户签发 / 游客授权 / 内嵌知识库）管理你想要的一切",
+  "https://phgithum.github.io/huashu-prompts/": "芝士就是力量~",
+  "https://phgithum.github.io/quiz/": "超级考试系统"
+ },
+ "hidden": [
+  "https://phgithum.github.io/care-logs/",
+  "https://phgithum.github.io/care-logs/admin.html"
+ ],
+ "shown": [],
+ "updated": "2026-09-21 15:33:58",
+ "updated_ts": 1790004838,
+ "by": "panhao"
+}

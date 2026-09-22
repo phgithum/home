@@ -1,0 +1,98 @@
+{
+ "generated": 1790066265,
+ "generated_str": "2026-09-22 08:37:45",
+ "main_host": "panhaoo.dpdns.org",
+ "note": "GitHub Pages 静态版：只列可独立访问的站点。服务器自建服务（面板/语音/接口）未包含。",
+ "sites": [],
+ "domains": [],
+ "pages": [
+  {
+   "url": "https://phgithum.github.io/home/",
+   "repo": "home",
+   "name": "主页",
+   "note": "到达你想要去的一切地方~",
+   "dname": "home",
+   "dnote": "unified portal",
+   "hidden": false,
+   "status": 200,
+   "ms": 709
+  },
+  {
+   "url": "https://phgithum.github.io/huashu-prompts/",
+   "repo": "huashu-prompts",
+   "name": "知识检索台",
+   "note": "芝士就是力量~",
+   "dname": "huashu-prompts",
+   "dnote": "",
+   "hidden": false,
+   "status": 200,
+   "ms": 714
+  },
+  {
+   "url": "https://phgithum.github.io/admin-console/",
+   "repo": "admin-console",
+   "name": "超级后台",
+   "note": "聚合管理后台（账户签发 / 游客授权 / 内嵌知识库）管理你想要的一切",
+   "dname": "admin-console",
+   "dnote": "unified admin portal",
+   "hidden": false,
+   "status": 200,
+   "ms": 710
+  },
+  {
+   "url": "https://phgithum.github.io/quiz/",
+   "repo": "quiz",
+   "name": "超级考试系统？",
+   "note": "超级考试系统",
+   "dname": "quiz",
+   "dnote": "高等数学随堂测验 H5",
+   "hidden": false,
+   "status": 200,
+   "ms": 694
+  },
+  {
+   "url": "https://phgithum.github.io/ppt-video-maker-web/",
+   "repo": "ppt-video-maker-web",
+   "name": "ppt-video-maker-web",
+   "note": "图片讲解视频生成器（纯浏览器版）：智谱读图讲稿 + MiMo 配音 + 自动翻页视频 + PPT",
+   "dname": "ppt-video-maker-web",
+   "dnote": "图片讲解视频生成器（纯浏览器版）：智谱读图讲稿 + MiMo 配音 + 自动翻页视频 + PPT",
+   "hidden": false,
+   "status": 200,
+   "ms": 634
+  },
+  {
+   "url": "https://phgithum.github.io/care-logs/",
+   "repo": "care-logs",
+   "name": "care-logs",
+   "note": "caregiving coop log",
+   "dname": "care-logs",
+   "dnote": "caregiving coop log",
+   "hidden": true,
+   "status": 200,
+   "ms": 687
+  }
+ ],
+ "external": [
+  {
+   "url": "https://zhishiku.phwork.qd.je",
+   "name": "知识库",
+   "note": "自研客服知识库，整合高效检索、场景话术、案例沉淀能力，支持业务知识统一维护与快速更新。",
+   "dname": "360-kb",
+   "dnote": "360 客服知识库检索台",
+   "hidden": false,
+   "status": 200,
+   "ms": 815
+  },
+  {
+   "url": "https://mjzsk.phwork.qd.je",
+   "name": "MUJI",
+   "note": "同样的自研客服知识库，整合高效检索、场景话术、案例沉淀能力，支持业务知识统一维护与快速更新。",
+   "dname": "MUJI",
+   "dnote": "MUJI 商品知识库网页（独立站）",
+   "hidden": false,
+   "status": 200,
+   "ms": 794
+  }
+ ]
+}

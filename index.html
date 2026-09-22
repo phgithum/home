@@ -3,343 +3,747 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>工作台 · 入口导航</title>
+<title>工作台</title>
 <style>
-:root{--main:#2456c4;--line:#e5e8ef;--bg:#f5f7fa;--txt:#333}
+:root{
+  /* 浅色玻璃配色。注意：玻璃越透，卡面实际底色越接近背景，文字就得越深，
+     下面这几个值是按最浓的紫光斑底下（卡面约 #d0c6ff）卡过 WCAG 4.5:1 定的，别随手调浅。 */
+  --ink:#152033;
+  --dim:#42526a;
+  --dim2:#4a586e;
+  --accent:#1a46b6;
+  --ok:#0b6a42;
+  --warn:#8a5504;
+  --bad:#b32f24;
+  --fail:#6b7280;
+
+  --glass:rgba(255,255,255,.30);
+  --glass-hi:rgba(255,255,255,.50);
+  --line:rgba(255,255,255,.72);
+  --line-top:rgba(255,255,255,.98);
+  --line-bot:rgba(255,255,255,.36);
+  --r:22px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);font-family:"Segoe UI","Microsoft YaHei",sans-serif;color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 16px}
-h1{font-size:22px;font-weight:700;margin-bottom:6px}
-.sub{font-size:13px;color:#889;margin-bottom:20px;text-align:center}
-h2{font-size:13px;color:#889;font-weight:600;width:100%;max-width:960px;margin:18px 0 10px;letter-spacing:1px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;width:100%;max-width:960px}
-.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:all .18s;position:relative;animation:in .35s both}
-@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.card:hover{border-color:var(--main);transform:translateY(-3px);box-shadow:0 8px 20px rgba(36,86,196,.1)}
-.card .name{font-size:15px;font-weight:700;margin-bottom:5px;padding-right:64px}
-.card .desc{font-size:12px;color:#889;line-height:1.6;margin-bottom:10px;word-break:break-all}
-.card .go{font-size:12px;color:var(--main);font-weight:600}
-.card .copy{position:absolute;top:12px;right:12px;font-size:11px;color:#889;background:#fff;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer}
-.card .copy:hover{color:var(--main);border-color:var(--main)}
-.badge{display:inline-block;font-size:10px;color:#889;background:#f0f2f6;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
-.muted{font-size:12px;color:#aab;width:100%;max-width:960px}
-.topbar{width:100%;max-width:960px;display:flex;justify-content:flex-end;margin-bottom:8px;gap:8px}
-.tbtn{font-size:12px;padding:5px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#667;cursor:pointer}
-.tbtn:hover{border-color:var(--main);color:var(--main)}
-body.editing .tbtn.edit{background:var(--main);color:#fff;border-color:var(--main)}
-body.editing .card{cursor:grab;border-style:dashed}
-body.editing .card:hover{transform:none}
-body.editing .card .copy{display:none}
-body.editing .card .desc{cursor:text;border-bottom:1px dashed #c8cede;padding-bottom:2px}
-.card .hidebtn{display:none;position:absolute;top:12px;right:12px;font-size:11px;color:#d33;background:#fff;border:1px solid #eec;border-radius:6px;padding:3px 8px;cursor:pointer}
-body.editing .card .hidebtn{display:block}
-.card.dragging{opacity:.4}
-.card.dragover{border-color:var(--main);border-width:2px}
-.addform{display:none;width:100%;max-width:960px;background:#fff;border:1px dashed var(--main);border-radius:12px;padding:16px;margin-bottom:10px;gap:10px;flex-wrap:wrap}
-body.editing .addform{display:flex}
-.addform input{flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none}
-.addform button{padding:8px 18px;border:none;border-radius:8px;background:var(--main);color:#fff;font-size:13px;cursor:pointer}
-footer{margin-top:36px;font-size:12px;color:#aab;text-align:center;line-height:1.8}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100vh;color:var(--ink);position:relative;overflow-x:hidden;
+  font:14px/1.65 -apple-system,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  background:#dfe9fb;padding-bottom:70px;
+}
+/* ============ 背景：几块浅色纯色大面积柔和混合，不用任何点阵/颗粒 ============
+   底色 + 五团大色块（蓝/青/紫/薄荷/淡金）互相晕开，靠 blur 融成一片，
+   卡片在上面才透得出颜色层次。 */
+.bg{position:fixed;inset:0;z-index:-2;overflow:hidden;
+  background:linear-gradient(152deg,#eaf1ff 0%,#eff5ff 18%,#f3f1ff 38%,#eef6ff 58%,#edfaf6 78%,#f5f2ff 100%)}
+.blob{position:absolute;border-radius:50%;filter:blur(104px);opacity:.80;will-change:transform}
+.b1{width:820px;height:820px;left:-260px;top:-290px;background:radial-gradient(circle at 45% 45%,#7bb0ff,#a8cdff 62%,rgba(168,205,255,0) 78%);animation:d1 27s ease-in-out infinite alternate}
+.b2{width:700px;height:700px;right:-200px;top:-190px;background:radial-gradient(circle at 50% 50%,#a5a6ff,#c6c7ff 62%,rgba(198,199,255,0) 78%);animation:d2 33s ease-in-out infinite alternate}
+.b3{width:740px;height:740px;left:23%;top:20%;background:radial-gradient(circle at 50% 50%,#8ad6f2,#b6e7f9 62%,rgba(182,231,249,0) 78%);animation:d3 39s ease-in-out infinite alternate}
+.b4{width:620px;height:620px;right:-4%;bottom:-210px;background:radial-gradient(circle at 50% 50%,#bfabff,#dccfff 62%,rgba(220,207,255,0) 78%);animation:d1 31s ease-in-out infinite alternate-reverse}
+.b5{width:520px;height:520px;left:-150px;bottom:-4%;background:radial-gradient(circle at 50% 50%,#a3e4cb,#c9f0de 62%,rgba(201,240,222,0) 78%);animation:d2 35s ease-in-out infinite alternate-reverse}
+@keyframes d1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(70px,55px,0) scale(1.14)}}
+@keyframes d2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-80px,65px,0) scale(1)}}
+@keyframes d3{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(45px,-70px,0) scale(1.16)}}
+/* 左上白光：给玻璃一个"光源方向"，不然透出来是平的 */
+.light{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(120% 80% at 12% -10%,rgba(255,255,255,.66),rgba(255,255,255,0) 55%),
+             radial-gradient(90% 70% at 100% 108%,rgba(120,150,235,.14),rgba(255,255,255,0) 60%)}
+
+.wrap{max-width:1240px;margin:0 auto;padding:0 26px}
+
+/* ============ 顶部 ============ */
+.topbar{position:fixed;top:22px;right:26px;z-index:40;display:flex;gap:9px;align-items:center}
+.stamp{font-size:11.5px;color:var(--dim2);opacity:.7;letter-spacing:.2px}
+.ebtn{
+  display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;
+  border:1px solid var(--line);background:rgba(255,255,255,.52);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
+  border-radius:13px;padding:9px 17px;font-size:13px;color:var(--ink);font-weight:600;
+  box-shadow:0 6px 20px rgba(60,100,180,.14),inset 0 1px 0 rgba(255,255,255,.9);
+  transition:transform .22s cubic-bezier(.2,.75,.3,1),box-shadow .22s,background .22s,border-color .22s;
+}
+.ebtn:hover{transform:translateY(-1px);background:rgba(255,255,255,.76);border-color:var(--line-top);
+  box-shadow:0 12px 30px rgba(37,89,216,.22),inset 0 1px 0 #fff}
+.ebtn[disabled]{opacity:.5;cursor:default;transform:none}
+body.editing .ebtn.save{background:linear-gradient(135deg,#3d6ef5,#6a4fd8);color:#fff;
+  border-color:rgba(255,255,255,.5);box-shadow:0 10px 26px rgba(61,110,245,.38)}
+body.editing .ebtn.save:hover{box-shadow:0 16px 36px rgba(61,110,245,.46)}
+
+/* ============ 大标题：正中三个字 ============ */
+h1{
+  text-align:center;font-size:44px;font-weight:700;letter-spacing:.32em;
+  padding:74px 0 10px;text-indent:.32em;
+  background:linear-gradient(96deg,#1b3055 6%,#2559d8 50%,#7a54d0 94%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 16px rgba(255,255,255,.7));
+}
+.rule{width:56px;height:3px;border-radius:2px;margin:0 auto 44px;
+  background:linear-gradient(90deg,rgba(61,110,245,.12),rgba(61,110,245,.9),rgba(122,84,208,.12))}
+
+/* ============ 分组 ============ */
+section{margin-bottom:34px}
+h2{font-size:12.5px;font-weight:600;color:var(--dim);letter-spacing:1.4px;
+   margin:0 0 15px;display:flex;align-items:center;gap:10px;padding-left:2px}
+h2 .bar{width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,#4f86ff,#7a54d0)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(278px,1fr));gap:18px}
+
+/* ============ 玻璃卡 ============ */
+.card{
+  position:relative;display:flex;flex-direction:column;gap:11px;
+  padding:20px 21px 18px;border-radius:var(--r);
+  border:1px solid var(--line);
+  border-top-color:var(--line-top);
+  border-bottom-color:var(--line-bot);
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(34px) saturate(185%) brightness(1.05);
+  backdrop-filter:blur(34px) saturate(185%) brightness(1.05);
+  /* 三层影子：贴地的接触影 + 中距环境影 + 远距大投影，单层会显假 */
+  box-shadow:0 1px 2px rgba(30,60,130,.07),
+             0 10px 26px rgba(44,86,160,.12),
+             0 30px 60px -22px rgba(44,86,160,.20),
+             inset 0 1px 0 rgba(255,255,255,.95),
+             inset 0 -2px 5px rgba(96,132,196,.09),
+             inset 0 -1px 0 rgba(255,255,255,.34);
+  text-decoration:none;color:inherit;overflow:hidden;isolation:isolate;
+  transition:transform .34s cubic-bezier(.2,.75,.3,1),box-shadow .34s cubic-bezier(.2,.75,.3,1),
+             background .34s,border-color .34s;
+  will-change:transform;
+}
+/* 悬停：内圈渐变描边（磨砂玻璃被光照到的那条亮边） */
+.card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;
+  background:linear-gradient(135deg,rgba(120,160,255,.95),rgba(205,175,255,.6) 46%,rgba(120,215,250,.9));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;opacity:0;transition:opacity .34s;pointer-events:none;z-index:3;
+}
+/* 玻璃的"厚度"：上缘高光 + 底部内阴影，模拟一块有厚度的板子 */
+.sheen{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.50) 0%,rgba(255,255,255,.16) 26%,rgba(255,255,255,0) 52%);}
+/* 玻璃内部的磨砂颗粒，压在内容下面。压得很淡，只为了别让卡面像一块塑料片 */
+.frost{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+  opacity:.24;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/></filter><rect width='120' height='120' filter='url(%23f)'/></svg>");}
+/* 背后的柔光 */
+.halo{position:absolute;left:-30%;top:-60%;width:160%;height:200%;pointer-events:none;z-index:-1;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(110,155,255,.42),rgba(150,120,245,.18) 46%,rgba(255,255,255,0) 74%);
+  opacity:0;transition:opacity .36s}
+/* 悬停时斜扫过的一道高光 */
+.sweep{position:absolute;top:-40%;left:-60%;width:44%;height:180%;pointer-events:none;z-index:1;
+  background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.72),rgba(255,255,255,0));
+  transform:translateX(-140%) rotate(8deg);opacity:0;
+  transition:transform .85s cubic-bezier(.2,.7,.25,1),opacity .3s}
+.card:hover .sweep,.card.forcehover .sweep{transform:translateX(400%) rotate(8deg);opacity:.55}
+.card:hover,.card.forcehover{
+  transform:translateY(-7px) scale(1.03);
+  background:var(--glass-hi);
+  border-color:var(--line-top);
+  box-shadow:0 2px 4px rgba(30,60,130,.08),
+             0 24px 48px rgba(37,89,216,.24),
+             0 44px 80px -30px rgba(37,89,216,.30),
+             inset 0 1px 0 #fff,
+             inset 0 -1px 0 rgba(255,255,255,.45);
+}
+.card:hover::before,.card.forcehover::before{opacity:1}
+.card:hover .halo,.card.forcehover .halo{opacity:1}
+.card:hover .sheen,.card.forcehover .sheen{
+  background:linear-gradient(180deg,rgba(255,255,255,.66) 0%,rgba(255,255,255,.22) 30%,rgba(255,255,255,0) 56%)}
+.card:active{transform:translateY(-3px) scale(1.014)}
+
+.ctop{display:flex;align-items:center;gap:9px;position:relative;z-index:2;padding-right:52px}
+.cname{font-size:15.5px;font-weight:650;letter-spacing:.2px;overflow:hidden;
+       text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}
+.tag{font-size:11px;color:var(--dim2);border:1px solid rgba(255,255,255,.85);
+     background:rgba(255,255,255,.44);border-radius:7px;padding:1px 8px;flex:none;letter-spacing:.2px}
+.cdesc{color:var(--dim);font-size:12.5px;line-height:1.7;flex:1;position:relative;z-index:2;
+       display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+       text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.cfoot{display:flex;align-items:center;gap:9px;position:relative;z-index:2;flex-wrap:nowrap}
+.cfoot code{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--dim2);
+  background:rgba(255,255,255,.42);border-radius:6px;padding:1px 7px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}
+.go{margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600;white-space:nowrap;flex:none;
+    display:inline-flex;align-items:center;gap:4px;transition:gap .25s}
+.card:hover .go,.card.forcehover .go{gap:9px}
+.ms{font-size:11px;color:var(--dim2);opacity:.9;flex:none;white-space:nowrap;
+    font-variant-numeric:tabular-nums}
+
+/* 操作区：复制常驻（淡），隐藏只在编辑态 */
+.acts{position:absolute;top:11px;right:11px;display:flex;gap:6px;z-index:5}
+.act{
+  border:1px solid var(--line);background:rgba(255,255,255,.62);border-radius:8px;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  font-size:11px;color:var(--dim);padding:3px 9px;cursor:pointer;font-family:inherit;
+  opacity:.62;flex:none;
+  transition:opacity .22s,background .2s,color .2s,border-color .2s,transform .2s;
+}
+.card:hover .act{opacity:1}
+.act:hover{opacity:1;background:#fff;color:var(--ink);border-color:var(--line-top);transform:translateY(-1px)}
+.act.warn:hover{color:var(--bad);border-color:rgba(179,47,36,.42)}
+.act.done{color:var(--ok);border-color:rgba(11,106,66,.42)}
+.act.hide-c{display:none;position:absolute;bottom:15px;right:14px;z-index:6}
+body.editing .act.hide-c{display:inline-block}
+body.editing .act{opacity:1}
+
+/* 状态灯 */
+.dot{width:8px;height:8px;border-radius:50%;flex:none;position:relative}
+.dot.ok{background:#12a05f;box-shadow:0 0 0 3px rgba(18,160,95,.16)}
+.dot.warn{background:#d99512;box-shadow:0 0 0 3px rgba(217,149,18,.18)}
+.dot.bad{background:#d8483c;box-shadow:0 0 0 3px rgba(216,72,60,.16)}
+.dot.none{background:#c2c9d6;box-shadow:0 0 0 3px rgba(194,201,214,.2)}
+.dot.ok::after{content:"";position:absolute;inset:-3px;border-radius:50%;
+  border:1.5px solid rgba(18,160,95,.6);animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.7);opacity:.9}70%{transform:scale(1.9);opacity:0}100%{opacity:0}}
+
+/* 编辑态 */
+body.editing .card{border-color:rgba(120,160,255,.85);cursor:default;
+  box-shadow:0 0 0 3px rgba(90,140,255,.16),
+             0 10px 26px rgba(44,86,160,.12),
+             inset 0 1px 0 rgba(255,255,255,.95)}
+body.editing .card:hover{transform:none;
+  box-shadow:0 0 0 3px rgba(90,140,255,.26),
+             0 10px 26px rgba(44,86,160,.12),
+             inset 0 1px 0 rgba(255,255,255,.95)}
+body.editing .card:hover .sweep{transform:translateX(-140%) rotate(8deg);opacity:0}
+body.editing .cname,body.editing .cdesc{
+  outline:1px dashed rgba(90,140,255,.55);outline-offset:3px;border-radius:4px;
+  transition:background .2s,outline-color .2s;min-width:40px}
+body.editing .cname:hover,body.editing .cdesc:hover{background:rgba(255,255,255,.55);
+  outline-color:rgba(26,70,182,.9);cursor:text}
+body.editing .cname:focus,body.editing .cdesc:focus{outline:1px solid rgba(26,70,182,.95);
+  background:rgba(255,255,255,.72);outline-offset:3px}
+body.editing .go{display:none}
+body.editing .cfoot{padding-right:62px}
+.card.isHidden{opacity:.42;filter:saturate(.35)}
+.card.isHidden .ctop::after{content:"已隐藏";font-size:11px;color:var(--dim2);flex:none;
+  border:1px dashed rgba(74,88,110,.55);border-radius:6px;padding:0 6px;margin-left:2px}
+.dirtyMark{position:absolute;top:0;left:0;width:100%;height:3px;border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,#f0a020,#f5c542);opacity:0;transition:opacity .25s;z-index:6}
+.card.dirty .dirtyMark{opacity:1}
+
+/* 空态 / 报错 */
+.notice{border:1px solid var(--line);background:rgba(255,255,255,.5);border-radius:16px;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:22px 24px;color:var(--dim);
+  font-size:13px;line-height:1.9;box-shadow:0 8px 24px rgba(44,86,160,.10)}
+.notice b{color:var(--ink)}
+.notice code{font-family:ui-monospace,Consolas,monospace;background:rgba(255,255,255,.7);
+  padding:1px 6px;border-radius:5px}
+
+/* ============ 验证弹窗 ============ */
+.mask{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:rgba(30,55,110,.16);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.mask.on{display:flex}
+.modal{width:352px;padding:28px 28px 24px;border-radius:24px;
+  border:1px solid var(--line-top);background:rgba(255,255,255,.64);
+  -webkit-backdrop-filter:blur(36px) saturate(200%);backdrop-filter:blur(36px) saturate(200%);
+  box-shadow:0 30px 70px rgba(30,70,150,.28),inset 0 1px 0 #fff;
+  animation:pop .28s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{transform:translateY(10px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:17px;font-weight:650;margin-bottom:5px}
+.modal p{font-size:12.5px;color:var(--dim);margin-bottom:18px}
+.modal label{display:block;font-size:12px;color:var(--dim);margin-bottom:6px}
+.modal input{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.72);
+  border-radius:11px;padding:10px 13px;font-size:13.5px;color:var(--ink);outline:none;
+  font-family:inherit;margin-bottom:13px;transition:border-color .2s,box-shadow .2s}
+.modal input:focus{border-color:rgba(120,160,255,.95);box-shadow:0 0 0 4px rgba(37,89,216,.14)}
+.mrow{display:flex;gap:10px;margin-top:4px}
+.mrow .ebtn{flex:1;justify-content:center}
+.mrow .ebtn.pri{background:linear-gradient(135deg,#3d6ef5,#6a4fd8);color:#fff;
+  border-color:rgba(255,255,255,.5);box-shadow:0 10px 24px rgba(61,110,245,.34)}
+.merr{font-size:12.5px;color:var(--bad);margin:-4px 0 12px;min-height:18px}
+
+.hide{display:none!important}
+
+@media (max-width:760px){
+  .wrap{padding:0 14px}
+  h1{font-size:32px;padding-top:58px}
+  .grid{grid-template-columns:1fr;gap:14px}
+  .topbar{top:14px;right:14px;gap:7px}
+  .stamp{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<h1>工作台</h1>
-<div class="sub">点右上「编辑」可自定义名称、简介与排序</div>
+<div class="bg"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i><i class="blob b5"></i></div>
+<div class="light"></div>
+
 <div class="topbar">
-  <button class="tbtn edit" onclick="toggleEdit()">✏️ 编辑</button>
-  <button class="tbtn" id="resetBtn" style="display:none" onclick="resetAll()">还原默认</button>
-  <button class="tbtn" id="globalBtn" style="display:none;background:#18a058;color:#fff;border-color:#18a058" onclick="saveGlobal()">☁ 保存为全局</button>
-  <button class="tbtn" id="tokBtn" style="display:none" onclick="resetPortalToken()">重设 token</button>
+  <span class="stamp" id="stamp" title="这是仓库里这份站点清单的快照时间"></span>
+  <button class="ebtn" id="discard" style="display:none">放弃</button>
+  <button class="ebtn" id="editBtn" style="display:none">编辑</button>
 </div>
-<div class="addform">
-  <input id="afName" placeholder="名称（如：腾讯托管站）">
-  <input id="afUrl" placeholder="链接（https:// 开头）">
-  <button onclick="addCustom()">添加</button>
+
+<div class="wrap">
+  <h1>工作台</h1>
+  <div class="rule"></div>
+  <div id="body"></div>
 </div>
-<div id="hiddenSec" style="display:none;width:100%;max-width:960px">
-  <h2 style="display:flex;align-items:center;justify-content:space-between">已隐藏的页面
-    <span>
-      <button class="tbtn" style="font-weight:400;margin-right:6px" onclick="restoreAll()">全部恢复显示</button>
-      <button class="tbtn" style="font-weight:400;margin-right:6px;color:#d33;border-color:#f3cfcf" onclick="resetLocal()">重置本机布局</button>
-      <button class="tbtn" style="font-weight:400" onclick="closeHidden()">收起</button>
-    </span>
-  </h2>
-  <div class="grid" id="gHidden"></div>
-  <div class="muted" id="hiddenMsg"></div>
-</div>
-<h2>自定义域名 / 其他托管站点</h2>
-<div class="grid" id="gCustom"></div>
-<h2>GitHub Pages 站点 <span class="badge">自动识别</span></h2>
-<div class="grid" id="gAuto"></div>
-<div class="muted" id="autoMsg">正在扫描你名下的 GitHub Pages 站点…</div>
-<div id="hiddenBar" style="width:100%;max-width:960px;margin-top:26px;text-align:center">
-  <button class="tbtn" onclick="openHidden()">🔒 打开隐藏页面</button>
-  <button class="tbtn" style="margin-left:8px" onclick="resetLocal2()">↺ 重置本机布局</button>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3>编辑需要验证</h3>
+    <p>用超级后台的账号密码登录，通过后这两小时内的改动才算数。</p>
+    <label>账号</label>
+    <input id="mu" autocomplete="username">
+    <label>密码</label>
+    <input id="mp" type="password" autocomplete="current-password">
+    <div class="merr" id="merr"></div>
+    <div class="mrow">
+      <button class="ebtn" id="mcancel">取消</button>
+      <button class="ebtn pri" id="mok">验证并进入</button>
+    </div>
+  </div>
 </div>
 
 <script>
-var GITHUB_NAME="phgithum";
-/* fallback list: used when GitHub API is rate-limited, so cards never shrink */
-var FALLBACK=[
- {name:"home",desc:"工作台入口导航",url:"https://phgithum.github.io/home/",tag:"Pages"},
- {name:"quiz",desc:"在线考试系统（教师后台 / 学生答题 / 成绩看板）",url:"https://phgithum.github.io/quiz/",tag:"Pages"},
- {name:"admin-console",desc:"聚合管理后台（账户签发 / 游客授权 / 内嵌知识库）",url:"https://phgithum.github.io/admin-console/",tag:"Pages"},
- {name:"360-kb",desc:"客服知识库前台（自定义域名）",url:"https://zhishiku.phwork.qd.je",tag:"Pages"},
- {name:"MUJI",desc:"MUJI 商品知识库（自定义域名）",url:"https://mjzsk.phwork.qd.je",tag:"Pages"},
- {name:"care-logs",desc:"看护记录",url:"https://phgithum.github.io/care-logs/",tag:"Pages"},
- {name:"care-logs/admin",desc:"看护任务与交接班提醒配置页",url:"https://phgithum.github.io/care-logs/admin.html",tag:"子页面"},
- {name:"huashu-prompts",desc:"话术小助手",url:"https://phgithum.github.io/huashu-prompts/",tag:"Pages"}
+/* 接口地址：借 /panel/ 这条已有的反代，不用另开 nginx location。
+   /panel/ 的 proxy_pass 带尾斜杠，所以 /panel/navapi/x 打到 5180 的 /navapi/x。 */
+/* 静态版没有后端，改名/隐藏这类写操作请在服务器那版上做 */
+var API = "/panel/navapi";
+var TOK_KEY = "nav_tok", TOK_EXP = "nav_tok_exp";
+
+var DIR = null;          /* __dir.json：扫出来的 */
+var LAY = {names:{}, descs:{}, hidden:[], shown:[]};   /* __layout.json：人改的 */
+var ITEMS = [];          /* 拼好的卡片数据 */
+var EDITING = false, DIRTY = false, TOKEN = null;
+
+var $ = function(id){ return document.getElementById(id) };
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c] }) }
+function host(u){ return String(u||"").replace(/^https?:\/\//,"").replace(/\/$/,"") }
+/* 时间一律按访问者的本地时区显示。
+   扫描脚本吐的 generated_str 是服务器的本地时间，而这台服务器跑在 UTC，
+   直接显示会比他的钟慢 8 小时；用时间戳 + 浏览器时区就不会错。 */
+function pad2(n){ return (n < 10 ? "0" : "") + n }
+function localTime(ts){
+  if(!ts) return "";
+  var d = new Date(ts * 1000);
+  return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+}
+function localFull(ts){
+  if(!ts) return "";
+  var d = new Date(ts * 1000);
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) +
+         " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+}
+function lv(s){ if(s===null||s===undefined) return "none"; if(s===0) return "bad"; return s<400?"ok":"warn" }
+function dedup(a){ return a.filter(function(x,i){ return a.indexOf(x)===i }) }
+
+/* ---------------- 数据 ----------------
+   两套基准，千万别混用：
+   baseName/baseNote = 扫描出的原始默认值 → 只用来判断"这条要不要写进 layout"
+   layName/layNote   = 载入时 layout 里的值 → 用来显示，也用来判断"脏不脏"
+   __dir.json 里的 name/note 是已经套过 layout 的，直接拿它当默认值的话，
+   人看自己改过的名字会被当成"没改"，一保存就把自己的改动删掉。 */
+function withLay(it){
+  it.layName = LAY.names[it.url] || it.baseName;
+  it.layNote = LAY.descs[it.url] || it.baseNote;
+  it.name = it.layName;
+  it.note = it.layNote;
+  return it;
+}
+
+function applyLay(){
+  ITEMS.forEach(function(it){
+    withLay(it);
+    it.hidden = (LAY.hidden.indexOf(it.url) >= 0 || it.srvHidden)
+             && LAY.shown.indexOf(it.url) < 0;
+  });
+}
+
+function buildItems(){
+  ITEMS = [];
+  /* 记下扫描原值，之后 name/note 随便改都不影响这两个 */
+  function def(it){ it.baseName = it.name; it.baseNote = it.note; return it }
+
+  (DIR.sites || []).forEach(function(s){
+    if(s.path === "/" || s.path === "/home/") return;      /* 这页自己，别自己指向自己 */
+    ITEMS.push(def({grp:"site", url:s.url, path:s.path, name:s.name, note:s.note,
+                    tag:"站内", status:s.status, ms:s.ms}));
+  });
+
+  /* 补漏：/panel/、/voice/ 这类是 nginx 直接挂 location 反代出去的，不在站点目录里，
+     只看 sites 那组就会漏掉，从 domains 里按白名单捞回来。
+     同一个服务既走主域路径、又走独立子域时（监控面板就是），只留一条 —— 优先留子域那条，
+     地址更像一个"网站"，也和别处的写法一致。 */
+  var SVC_PATH = {"/panel/": 1, "/voice/": 1};
+  var cands = [];
+  (DIR.domains || []).forEach(function(d){
+    var isMain = d.host === DIR.main_host;
+    (d.entries || []).forEach(function(e){
+      var keep = isMain ? !!SVC_PATH[e.path] : (e.path === "/" && e.kind === "proxy");
+      if(keep) cands.push({pr: isMain ? 1 : 0, e: e});
+    });
+  });
+  cands.sort(function(a, b){ return a.pr - b.pr });
+  var svcSeen = {};
+  ITEMS.forEach(function(it){ svcSeen[it.name] = 1 });
+  cands.forEach(function(c){
+    var e = c.e;
+    if(!e.url || svcSeen[e.name]) return;
+    svcSeen[e.name] = 1;
+    ITEMS.push(def({grp:"site", url:e.url,
+                    path:(e.path && e.path !== "/") ? e.path : host(e.url),
+                    name:e.name, note:e.note, tag:"服务", status:e.status, ms:e.ms}));
+  });
+
+  /* pages / external 的默认值取 dname/dnote（扫描原值），不能取 name/note（已套 layout） */
+  (DIR.pages || []).forEach(function(p){
+    ITEMS.push(def({grp:"pages", url:p.url, path:host(p.url),
+                    name:p.dname || p.name,
+                    note:(p.dnote != null ? p.dnote : p.note) || "",
+                    tag:"Pages", status:p.status, ms:p.ms, srvHidden:!!p.hidden}));
+  });
+  (DIR.external || []).forEach(function(e){
+    ITEMS.push(def({grp:"ext", url:e.url, path:host(e.url),
+                    name:e.dname || e.name,
+                    note:(e.dnote != null ? e.dnote : e.note) || "",
+                    tag:"外链", status:e.status, ms:e.ms, srvHidden:!!e.hidden}));
+  });
+}
+
+/* ---------------- 渲染 ---------------- */
+var GROUPS = [
+  ["site",  "本站服务"],
+  ["pages", "GitHub Pages"],
+  ["ext",   "外部托管站点"]
 ];
-var OTHERS=[
- {name:"知识库（自定义域名）",desc:"客服知识库前台 · 游客可试用",url:"https://zhishiku.phwork.qd.je"},
- {name:"MUJI 知识库",desc:"MUJI 客服知识库（自定义域名）",url:"https://mjzsk.phwork.qd.je"}
-];
-var CUSTOM_DOMAINS={"360-kb":"https://zhishiku.phwork.qd.je","MUJI":"https://mjzsk.phwork.qd.je"};
-var SS="portal_layout_v1";
-function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-var GLOBAL={};
-function loadLay(){try{return JSON.parse(localStorage.getItem(SS)||"{}")}catch(e){return{}}}
-function mergeLay(){
-  /* 本机覆盖全局：合并出生效布局 */
-  var g=GLOBAL,l=loadLay(),m={};
-  m.names=Object.assign({},g.names||{},l.names||{});
-  m.descs=Object.assign({},g.descs||{},l.descs||{});
-  var gh=g.hidden||[],lh=l.hidden||[],sh=l.shown||[];
-  m.hidden=gh.concat(lh).filter(function(u,i,a){return a.indexOf(u)===i&&sh.indexOf(u)<0});
-  m.customs=(g.customs||[]).concat(l.customs||[]);
-  m.orderCustom=l.orderCustom&&l.orderCustom.length?l.orderCustom:(g.orderCustom||[]);
-  m.orderAuto=l.orderAuto&&l.orderAuto.length?l.orderAuto:(g.orderAuto||[]);
-  m.siteTitle=l.siteTitle||g.siteTitle||"";
-  m._auto=l._auto||g._auto||[];
-  return m;
+
+function cardHtml(it, i){
+  var k = lv(it.status), code = it.path || host(it.url);
+  var st = (it.status === null || it.status === undefined) ? ""
+         : (it.status === 0 ? '<span class="ms">连不上</span>'
+                            : '<span class="ms">' + it.status + " · " + it.ms + "ms</span>");
+  return '<a class="card" href="' + esc(it.url) + '" target="_blank" rel="noopener" data-i="' + i + '">' +
+      '<i class="halo"></i><i class="sheen"></i><i class="frost"></i><i class="sweep"></i>' +
+      '<i class="dirtyMark"></i>' +
+      '<span class="acts"><button class="act copy" title="复制链接">复制</button></span>' +
+      '<button class="act warn hide-c" title="从工作台隐藏">隐藏</button>' +
+      '<span class="ctop"><i class="dot ' + k + '"></i>' +
+        '<span class="cname" title="编辑态下点一下就能改">' + esc(it.name) + '</span>' +
+        '<span class="tag">' + esc(it.tag) + '</span></span>' +
+      '<p class="cdesc" title="编辑态下点一下就能改">' + esc(it.note || "") + '</p>' +
+      '<span class="cfoot"><code>' + esc(code) + '</code>' + st +
+        '<span class="go">进入 <b style="font-weight:400">→</b></span></span>' +
+    '</a>';
 }
-function askTok(){var t=prompt("请粘贴 GitHub token（只保存在本机浏览器，不会上传）\n\n获取：github.com → Settings → Developer settings → Personal access tokens\n· 选 classic，勾选 repo；或 fine-grained 且授予 Contents: Read and write\n\n粘错或权限不够，随时可点「重设 token」重来");return t?t.trim():null}
-function resetPortalToken(){localStorage.removeItem("portal_tok");var t=askTok();if(t){localStorage.setItem("portal_tok",t);alert("新 token 已保存，请再点一次「保存为全局」")}else{alert("已清除本机 token，下次保存时会重新询问")}}
-function ghPutFile(path,content,cb){
-  var tok=localStorage.getItem("portal_tok");
-  if(!tok){tok=askTok();if(!tok)return;localStorage.setItem("portal_tok",tok)}
-  var x=new XMLHttpRequest();
-  x.open("GET","https://api.github.com/repos/phgithum/home/contents/"+path);
-  x.setRequestHeader("Authorization","token "+tok);
-  x.onload=function(){
-    var sha=null;try{sha=JSON.parse(x.responseText).sha}catch(e){}
-    var x2=new XMLHttpRequest();
-    x2.open("PUT","https://api.github.com/repos/phgithum/home/contents/"+path);
-    x2.setRequestHeader("Authorization","token "+tok);
-    x2.setRequestHeader("Content-Type","application/json");
-    x2.onload=function(){if(x2.status>=200&&x2.status<300){alert("已保存为全局默认，所有人打开都一样（Pages 刷新需1分钟）");cb&&cb()}else{if(x2.status===401||x2.status===403||x2.status===404){if(confirm("保存失败 "+x2.status+"：本机保存的 token 无效，或没有 home 仓库的写入权限。\n\n是否清除本机 token 并重新输入？")){localStorage.removeItem("portal_tok");var nt=askTok();if(nt){localStorage.setItem("portal_tok",nt);alert("新 token 已保存，请再点一次「保存为全局」")}}}else{alert("保存失败 "+x2.status)}}};
-    x2.send(JSON.stringify({message:"layout update",branch:"main",content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2)))),sha:sha}));
-  };
-  x.send();
+
+function render(){
+  document.querySelectorAll(".card").forEach(function(n){ n.__it = null });
+  var html = "";
+  GROUPS.forEach(function(g){
+    var list = ITEMS.map(function(it, i){ return [it, i] })
+                    .filter(function(p){ return p[0].grp === g[0] });
+    var visible = list.filter(function(p){ return EDITING || !p[0].hidden });
+    if(!visible.length) return;
+    html += '<section><h2><i class="bar"></i>' + g[1] + '</h2><div class="grid">' +
+            visible.map(function(p){ return cardHtml(p[0], p[1]) }).join("") + '</div></section>';
+  });
+  if(!html){
+    html = '<div class="notice">这次没扫到任何站点。扫描器每 60 秒跑一次，' +
+           '过一会儿刷新；要是还这样，看服务器上 <code>/opt/dir/discover.py</code> 有没有报错。</div>';
+  }
+  $("body").innerHTML = html;
+  document.querySelectorAll(".card").forEach(function(n){
+    var it = ITEMS[+n.getAttribute("data-i")];
+    n.__it = it;
+    n.classList.toggle("isHidden", !!it.hidden);
+  });
 }
-function saveGlobal(){
-  if(sessionStorage.getItem("portal_admin")!=="1"){alert("需要超管密码");return}
-  var l=mergeLay();
-  var cs=[],seen={};
-  (l.customs||[]).forEach(function(c){if(c&&c.url&&!seen[c.url]){seen[c.url]=1;cs.push(c)}});
-  var out={siteTitle:l.siteTitle||"",names:l.names||{},descs:l.descs||{},hidden:l.hidden||[],customs:cs,orderCustom:l.orderCustom||[],orderAuto:l.orderAuto||[]};
-  ghPutFile("layout.json",out,function(){});
-}
-function saveLay(l){try{localStorage.setItem(SS,JSON.stringify(l))}catch(e){}}
-function sha256(s){return crypto.subtle?crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return [].map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")}):Promise.reject()}
-function requireAdmin(cb){
-  if(sessionStorage.getItem("portal_admin")==="1")return cb();
-  var p=prompt("此操作需要超管密码：","");
-  if(p===null)return;
-  sha256(p).then(function(hx){
-    if(hx==="9363af785c5ecaa8151869e729bc470fffd16274b3ad82b02f5eb050817a9957"){
-      sessionStorage.setItem("portal_admin","1");cb();
-    }else{alert("密码错误")}
-  }).catch(function(){alert("浏览器不支持，请换 Chrome/Edge")});
-}
-function toggleEdit(){
-  if(!document.body.classList.contains("editing")){
-    requireAdmin(function(){toggleEditInner()});
+
+/* ---------------- 交互 ---------------- */
+document.addEventListener("click", function(e){
+  var node = e.target.closest(".card");
+  if(!node || !node.__it) return;
+  var it = node.__it;
+
+  if(e.target.classList.contains("copy")){
+    e.preventDefault(); e.stopPropagation();
+    var u = it.url;
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject())
+      .then(function(){
+        e.target.textContent = "已复制"; e.target.classList.add("done");
+        setTimeout(function(){ e.target.textContent = "复制"; e.target.classList.remove("done") }, 1200);
+      })
+      .catch(function(){ prompt("复制此链接：", u) });
     return;
   }
-  toggleEditInner();
+  if(e.target.classList.contains("hide-c")){
+    e.preventDefault(); e.stopPropagation();
+    it.hidden = !it.hidden;
+    node.classList.toggle("isHidden", it.hidden);
+    e.target.textContent = it.hidden ? "取消隐藏" : "隐藏";
+    markDirty(node, it, "hidden");
+    return;
+  }
+  if(EDITING){
+    e.preventDefault();
+    if(e.target.classList.contains("cname")) return editField(e.target, it, "name");
+    if(e.target.classList.contains("cdesc")) return editField(e.target, it, "note");
+  }
+}, true);
+
+function editField(el, it, field){
+  if(el.isContentEditable) return;
+  var orig = it[field];
+  el.contentEditable = "true";
+  el.focus();
+  var r = document.createRange(); r.selectNodeContents(el);
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  el.addEventListener("paste", function(ev){
+    ev.preventDefault();
+    var t = (ev.clipboardData || window.clipboardData).getData("text");
+    document.execCommand("insertText", false, t.replace(/\s+/g, " "));
+  });
+  el.addEventListener("keydown", function(ev){
+    if(ev.key === "Enter"){ ev.preventDefault(); el.blur(); }
+    if(ev.key === "Escape"){ el.textContent = orig; el.blur(); }
+  });
+  el.addEventListener("blur", function(){
+    el.contentEditable = "false";
+    var v = (el.innerText || "").replace(/\s+/g, " ").trim().slice(0, 200);
+    if(!v) v = it[field];
+    el.textContent = v;
+    it[field] = v;
+    var card = el.closest(".card");
+    if(v !== orig) markDirty(card, it, field);
+    else clearDirty(card, it);
+  }, {once:true});
 }
-function toggleEditInner(){
-  var on=!document.body.classList.contains("editing");
-  document.body.classList.toggle("editing");
-  [].slice.call(document.querySelectorAll(".card")).forEach(function(c){c.draggable=on;});
-  var on=document.body.classList.contains("editing");
-  document.querySelector(".tbtn.edit").textContent=on?"✅ 完成编辑":"✏️ 编辑";
-  document.getElementById("resetBtn").style.display=on?"":"none";
-  document.getElementById("globalBtn").style.display=on?"":"none";document.getElementById("tokBtn").style.display=on?"":"none";
+function nodeOf(it){
+  var all = document.querySelectorAll(".card");
+  for(var i = 0; i < all.length; i++) if(all[i].__it === it) return all[i];
+  return null;
 }
-function resetAll(){if(confirm("恢复默认排版？拖的顺序、改名、隐藏和自定义链接都会清除。")){localStorage.removeItem(SS);location.reload()}}
-var ALL={};
-function regItem(it){ALL[it.url]=it}
-function renderCard(it,target){
-  var lay=mergeLay();
-  if((lay.hidden||[]).indexOf(it.url)>=0)return;
-  var d=document.createElement("div");
-  d.className="card";d.draggable=document.body.classList.contains("editing");d.style.touchAction="none";
-  d.dataset.url=it.url;
-  var name=mergeLay().names[it.url]||it.name;
-  var desc=mergeLay().descs[it.url]||it.desc||it.url;
-  d.innerHTML='<button class="hidebtn" title="隐藏">隐藏</button><span class="copy">复制链接</span><div class="name">'+esc(name)+'<span class="badge">'+(it.tag||"")+'</span></div><div class="desc">'+esc(desc)+'</div><div class="go">进入 →</div>';
-  d.onclick=function(e){
-    if(e.target.className==="hidebtn"){hideCard(it.url);return}
-    if(e.target.className==="copy"){
-      e.stopPropagation();
-      (navigator.clipboard?navigator.clipboard.writeText(it.url):Promise.reject()).then(function(){e.target.textContent="已复制";setTimeout(function(){e.target.textContent="复制链接"},1200)}).catch(function(){prompt("复制此链接：",it.url)});
-      return;
-    }
-    if(document.body.classList.contains("editing"))return;
-    window.open(it.url,"_blank");
+function changed(it){
+  /* 脏 = 和"载入时 layout 里那版"不一样（不是和扫描原值比，那个是 collect 的活） */
+  return it.name !== it.layName || it.note !== it.layNote ||
+         it.hidden !== ((!!it.srvHidden || LAY.hidden.indexOf(it.url) >= 0) &&
+                        LAY.shown.indexOf(it.url) < 0);
+}
+function markDirty(node, it, field){
+  if(node) node.classList.toggle("dirty", changed(it));
+  syncDirty();
+}
+function clearDirty(node, it){
+  if(node) node.classList.toggle("dirty", changed(it));
+  syncDirty();
+}
+function syncDirty(){
+  DIRTY = ITEMS.some(changed);
+  if(EDITING){
+    $("editBtn").textContent = DIRTY ? "保存并完成" : "完成";
+    $("discard").style.display = DIRTY ? "" : "none";
+  }
+  document.querySelectorAll(".card").forEach(function(n){
+    n.classList.toggle("dirty", !!n.__it && changed(n.__it));
+  });
+}
+
+/* ---------------- 编辑开关 ---------------- */
+var authed = false;
+function tokValid(){
+  try{
+    return sessionStorage.getItem(TOK_KEY) &&
+           (+sessionStorage.getItem(TOK_EXP) || 0) > Date.now() / 1000 + 30;
+  }catch(e){ return false }
+}
+function needAuth(cb){
+  if(authed) return cb();
+  if(tokValid()){ TOKEN = sessionStorage.getItem(TOK_KEY); authed = true; return cb() }
+  $("merr").textContent = "";
+  $("mask").classList.add("on");
+  try{ $("mu").value = localStorage.getItem("nav_user") || "" }catch(e){}
+  setTimeout(function(){ ($("mu").value ? $("mp") : $("mu")).focus() }, 60);
+  $("mok").onclick = function(){ doLogin(cb) };
+  var key = function(ev){ if(ev.key === "Enter") doLogin(cb) };
+  $("mu").onkeydown = key; $("mp").onkeydown = key;
+  $("mcancel").onclick = function(){
+    $("mask").classList.remove("on");
+    $("mok").onclick = $("mu").onkeydown = $("mp").onkeydown = null;
   };
-  d.ondblclick=function(e){
-    if(!document.body.classList.contains("editing"))return;
-    if(e.target.className==="desc"){
-      var t=prompt("修改简介：",desc);
-      if(t!==null){var dl=loadLay();dl.descs=dl.descs||{};dl.descs[it.url]=t;saveLay(dl);location.reload()}
-      return;
-    }
-    var n=prompt("修改名称：",name);
-    if(n){var l=loadLay();l.names=l.names||{};l.names[it.url]=n;saveLay(l);location.reload()}
-  };
-  d.ondragstart=function(e){e.dataTransfer.setData("text",it.url);d.classList.add("dragging")};
-  d.ondragend=function(){d.classList.remove("dragging");persistOrder(target)};
-  d.ondragover=function(e){e.preventDefault();d.classList.add("dragover")};
-  d.ondragleave=function(){d.classList.remove("dragover")};
-  d.ondrop=function(e){
-    e.preventDefault();d.classList.remove("dragover");
-    var src=e.dataTransfer.getData("text");
-    if(src===it.url)return;
-    var s=[].slice.call(target.children).filter(function(x){return x.dataset.url===src})[0];
-    if(s)target.insertBefore(s,d);
-  };
-  target.appendChild(d);
 }
-function persistOrder(grid){
-  var lay=loadLay();
-  var urls=[].slice.call(grid.children).map(function(x){return x.dataset.url}).filter(Boolean);
-  lay[grid.id==="gCustom"?"orderCustom":"orderAuto"]=urls;saveLay(lay);
-}
-function hideCard(url){
-  var l=loadLay();l.hidden=l.hidden||[];
-  if(l.hidden.indexOf(url)<0)l.hidden.push(url);
-  saveLay(l);location.reload();
-}
-function applyOrder(grid,key){
-  var lay=loadLay();var order=lay[key]||[];
-  order.forEach(function(u){
-    var el=[].slice.call(grid.children).filter(function(x){return x.dataset.url===u})[0];
-    if(el)grid.appendChild(el);
-  });
-}
-function addCustom(){
-  if(sessionStorage.getItem("portal_admin")!=="1"){alert("需要超管密码");return}
-  var n=document.getElementById("afName").value.trim(),u=document.getElementById("afUrl").value.trim();
-  if(!n||!/^https?:\/\//.test(u)){alert("请填写名称和以 https:// 开头的链接");return}
-  var l=loadLay();l.customs=l.customs||[];l.customs.push({name:n,desc:"自定义链接",url:u});saveLay(l);location.reload();
-}
-function openHidden(){
-  requireAdmin(function(){
-    renderHidden();
-    document.getElementById("hiddenSec").style.display="";
-    document.getElementById("hiddenBar").style.display="none";
-  });
-}
-function closeHidden(){
-  document.getElementById("hiddenSec").style.display="none";
-  document.getElementById("hiddenBar").style.display="";
-}
-function renderHidden(){
-  var g=document.getElementById("gHidden"); g.innerHTML="";
-  var list=mergeLay().hidden||[];
-  document.getElementById("hiddenMsg").textContent=list.length?("共 "+list.length+" 个隐藏页面，点「恢复显示」即可回到主页"):"当前没有被隐藏的页面";
-  list.forEach(function(u){
-    var it=ALL[u]||{name:u,desc:u,url:u};
-    var d=document.createElement("div"); d.className="card";
-    var nm=document.createElement("div"); nm.className="name";
-    nm.innerHTML=esc((mergeLay().names||{})[u]||it.name)+'<span class="badge">已隐藏</span>';
-    var ds=document.createElement("div"); ds.className="desc"; ds.textContent=(mergeLay().descs||{})[u]||it.desc||u;
-    var bt=document.createElement("button"); bt.className="tbtn"; bt.style.marginTop="8px"; bt.textContent="恢复显示";
-    bt.onclick=function(e){e.stopPropagation();restoreCard(u)};
-    d.appendChild(nm);d.appendChild(ds);d.appendChild(bt);
-    d.onclick=function(){window.open(u,"_blank")};
-    g.appendChild(d);
-  });
-}
-function resetLocal2(){ requireAdmin(function(){resetLocal()}); }
-function restoreAll(){
-  if(!confirm("把本机隐藏的页面全部恢复显示？"))return;
-  var l=loadLay();
-  var all=mergeLay().hidden||[];
-  l.shown=l.shown||[];
-  all.forEach(function(u){ if(l.shown.indexOf(u)<0)l.shown.push(u); });
-  l.hidden=[];
-  saveLay(l); location.reload();
-}
-function resetLocal(){
-  if(!confirm("重置本机布局？本机所有的改动（隐藏、改名、排序、自定义链接）都会清除，恢复到全局默认。"))return;
-  try{localStorage.removeItem(SS)}catch(e){}
-  location.reload();
-}
-function restoreCard(u){
-  var l=loadLay();
-  l.shown=l.shown||[]; if(l.shown.indexOf(u)<0)l.shown.push(u);
-  l.hidden=(l.hidden||[]).filter(function(x){return x!==u});
-  saveLay(l); location.reload();
-}
-function renderAll(){
-  var gC=document.getElementById("gCustom");
-  gC.innerHTML="";
-  var lay=mergeLay();
-  OTHERS.forEach(regItem);
-  (lay.customs||[]).forEach(regItem);
-  (lay.customs||[]).forEach(function(c){renderCard(c,gC)});
-  OTHERS.forEach(function(c){renderCard(c,gC)});
-  applyOrder(gC,"orderCustom");
-}
-function drawAuto(list,msg){
-  var gA=document.getElementById("gAuto");
-  gA.innerHTML="";   /* 关键：重新渲染前先清空，避免重复堆叠 */
-  list.forEach(function(c){regItem(c);renderCard(c,gA)});
-  applyOrder(gA,"orderAuto");
-  document.getElementById("autoMsg").textContent=msg;
-}
-function mergeList(){
-  var seen={},out=[];
-  [].slice.call(arguments).forEach(function(arr){
-    (arr||[]).forEach(function(it){ if(it&&it.url&&!seen[it.url]){seen[it.url]=1;out.push(it)} });
-  });
-  return out;
-}
-function fetchAuto(){
-  var lay=loadLay();
-  var prev=lay._auto||[];
-  fetch("https://api.github.com/users/"+GITHUB_NAME+"/repos?per_page=100&sort=updated&t="+Date.now())
-    .then(function(r){ if(!r.ok)throw new Error("http "+r.status); return r.json(); })
-    .then(function(repos){
-      if(!Array.isArray(repos))throw new Error("bad payload");
-      var live=repos.filter(function(r){return r.has_pages}).map(function(r){
-        var url=CUSTOM_DOMAINS[r.name]||r.homepage||("https://"+GITHUB_NAME+".github.io/"+r.name+"/");
-        if(url.indexOf("http")!==0)url="https://"+url;
-        return {name:r.name,desc:r.description||"GitHub Pages 站点",url:url,tag:"Pages"};
-      });
-      live.push({name:"care-logs/admin",desc:"看护任务与交接班提醒配置页",url:"https://phgithum.github.io/care-logs/admin.html",tag:"子页面"});
-      var list=mergeList(FALLBACK,prev,live);
-      try{lay._auto=list;saveLay(lay)}catch(e){}
-      drawAuto(list,"已识别 "+list.length+" 个站点");
+function doLogin(cb){
+  var u = $("mu").value.trim(), p = $("mp").value;
+  if(!u || !p){ $("merr").textContent = "账号和密码都要填"; return }
+  $("mok").disabled = true; $("merr").textContent = "验证中…";
+  fetch(API + "/login", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({u: u, p: p})
+  }).then(function(r){ return r.json().then(function(j){ return [r.status, j] }) })
+    .then(function(pair){
+      var st = pair[0], j = pair[1] || {};
+      $("mok").disabled = false;
+      if(st === 200 && j.ok){
+        TOKEN = j.token; authed = true;
+        try{
+          sessionStorage.setItem(TOK_KEY, j.token);
+          sessionStorage.setItem(TOK_EXP, String(j.exp || 0));
+          localStorage.setItem("nav_user", u);
+        }catch(e){}
+        $("mp").value = "";
+        $("mask").classList.remove("on");
+        cb();
+      }else{
+        $("merr").textContent = j.err || ("验证失败（HTTP " + st + "）");
+      }
     })
     .catch(function(){
-      var list=mergeList(FALLBACK,prev);
-      drawAuto(list,"实时扫描失败（接口限流），已显示保存的站点");
+      $("mok").disabled = false;
+      $("merr").textContent = "连不上验证接口，检查一下 /panel/ 那条反代还在不在";
     });
 }
-fetch("https://raw.githubusercontent.com/phgithum/home/main/layout.json?t="+Date.now())
-  .then(function(r){return r.ok?r.json():{}})
-  .then(function(g){GLOBAL=g||{};boot()})
-  .catch(function(){boot()});
+
+function setEditing(on){
+  EDITING = on;
+  document.body.classList.toggle("editing", on);
+  $("editBtn").textContent = on ? (DIRTY ? "保存并完成" : "完成") : "编辑";
+  $("discard").style.display = (on && DIRTY) ? "" : "none";
+  render();
+  document.querySelectorAll(".act.hide-c").forEach(function(b){
+    var it = b.closest(".card").__it;
+    b.textContent = (it && it.hidden) ? "取消隐藏" : "隐藏";
+  });
+}
+
+function collect(){
+  var names = {}, descs = {}, hidden = [], shown = [];
+  Object.keys(LAY.names).forEach(function(k){ names[k] = LAY.names[k] });
+  Object.keys(LAY.descs).forEach(function(k){ descs[k] = LAY.descs[k] });
+  ITEMS.forEach(function(it){
+    if(it.name && it.name !== it.baseName) names[it.url] = it.name; else delete names[it.url];
+    if(it.note && it.note !== it.baseNote) descs[it.url] = it.note; else delete descs[it.url];
+    if(it.hidden) hidden.push(it.url);
+    else if(it.srvHidden) shown.push(it.url);
+  });
+  return {names: names, descs: descs, hidden: dedup(hidden), shown: dedup(shown)};
+}
+
+function save(cb){
+  var data = collect();
+  $("editBtn").disabled = true;
+  fetch(API + "/save", {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN},
+    body: JSON.stringify({layout: data})
+  }).then(function(r){ return r.json().then(function(j){ return [r.status, j] }) })
+    .then(function(pair){
+      var st = pair[0], j = pair[1] || {};
+      $("editBtn").disabled = false;
+      if(st === 401){
+        // 票过期了：重新验证，然后自动把这次改动补交上去
+        authed = false; TOKEN = null;
+        try{ sessionStorage.removeItem(TOK_KEY) }catch(e){}
+        needAuth(function(){ save(cb) });
+        return;
+      }
+      if(st === 200 && j.ok){
+        LAY = j.layout || data;
+        LAY_BASE = JSON.parse(JSON.stringify(LAY));   /* 存住的这版就是新的"放弃基线" */
+        DIRTY = false;
+        $("stamp").title = "最后由 " + (LAY.by || "?") + " 于 " +
+          (localFull(LAY.updated_ts) || LAY.updated || "?") + " 保存";
+        applyLay();
+        if(cb) cb(null); else { setEditing(false); toast("已保存") }
+      }else{
+        alert("保存失败：" + (j.err || ("HTTP " + st)));
+      }
+    })
+    .catch(function(){
+      $("editBtn").disabled = false;
+      alert("保存请求发不出去，网络或 /panel/ 反代有问题");
+    });
+}
+
+function toast(msg){
+  var d = document.createElement("div");
+  d.textContent = msg;
+  d.style.cssText = "position:fixed;left:50%;bottom:36px;transform:translateX(-50%);z-index:80;" +
+    "padding:10px 20px;border-radius:12px;font-size:13px;color:#152033;" +
+    "background:rgba(255,255,255,.82);backdrop-filter:blur(20px);" +
+    "border:1px solid rgba(255,255,255,.95);box-shadow:0 12px 32px rgba(44,86,160,.22)";
+  document.body.appendChild(d);
+  setTimeout(function(){ d.style.transition = "opacity .4s"; d.style.opacity = "0";
+    setTimeout(function(){ d.remove() }, 420) }, 1400);
+}
+
+$("editBtn").onclick = function(){
+  if(!EDITING){
+    needAuth(function(){
+      if(!DIR){ toast("站点数据还没读到，稍后再试"); return }
+      return setEditing(true);
+    });
+    return;
+  }
+  if(!DIRTY) return setEditing(false);
+  save(null);
+};
+$("discard").onclick = function(){
+  if(!confirm("放弃这次没保存的改动？")) return;
+  LAY = JSON.parse(JSON.stringify(LAY_BASE));
+  DIRTY = false;
+  applyLay();
+  setEditing(true);
+};
+
+/* ---------------- 载入 ---------------- */
+var LAY_BASE = null;
+function getJSON(url){
+  return fetch(url + "?t=" + Date.now(), {cache: "no-store"})
+    .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json() })
+}
+
 function boot(){
-  var m=mergeLay();
-  if(m.siteTitle){document.querySelector("h1").textContent=m.siteTitle;document.title=m.siteTitle+" · 入口导航"}
-  renderAll();
-  drawAuto(mergeList(FALLBACK,m._auto||[]),"正在实时扫描…");
-  fetchAuto();
+  /* 用绝对路径：这页同时挂在 / 和 /home/ 两个位置，相对路径会让 /home/ 那份读不到数据 */
+  Promise.all([
+    getJSON("./__dir.json"),
+    getJSON("./__layout.json").catch(function(){ return {} })
+  ]).then(function(res){
+    DIR = res[0];
+    var l = res[1] || {};
+    LAY = {
+      names: l.names || {}, descs: l.descs || {},
+      hidden: l.hidden || [], shown: l.shown || [],
+      by: l.by || "", updated: l.updated || "", updated_ts: l.updated_ts || 0
+    };
+    LAY_BASE = JSON.parse(JSON.stringify(LAY));
+    buildItems();
+    applyLay();
+    render();
+    $("stamp").textContent = "更新于 " + (localTime(DIR.generated) || DIR.generated_str || "");
+    $("stamp").title = "扫描于 " + (localFull(DIR.generated) || DIR.generated_str || "?") +
+      "（你本机时间）" +
+      (LAY.updated || LAY.updated_ts
+        ? "；布局最后由 " + (LAY.by || "?") + " 于 " +
+          (localFull(LAY.updated_ts) || (LAY.updated + "（服务器时间）")) + " 改过"
+        : "");
+  }).catch(function(err){
+    $("body").innerHTML = '<div class="notice"><b>没读到站点清单。</b><br>' +
+      '__dir.json 取不到（' + esc(err.message) + '）。检查仓库根目录下这个文件还在不在。</div>';
+    $("stamp").textContent = "";
+  });
+}
+
+boot();
+
+/* 截图自检用：#demo 悬停 / #edit 编辑态 / #login 验证弹窗 */
+if(/shot/.test(location.search)){
+  setTimeout(function(){
+    var h = location.hash;
+    if(h === "#demo"){ var c = document.querySelectorAll(".card")[1]; if(c) c.classList.add("forcehover") }
+    if(h === "#edit"){
+      EDITING = true; document.body.classList.add("editing");
+      $("editBtn").textContent = "完成";
+      var cs = document.querySelectorAll(".card");
+      if(cs[4]){ cs[4].__it.hidden = true; cs[4].classList.add("isHidden"); }
+      var b = document.querySelectorAll(".act.hide-c");
+      if(b[4]) b[4].textContent = "取消隐藏";
+      if(cs[1]) cs[1].classList.add("dirty");
+    }
+    if(h === "#login"){ $("mask").classList.add("on"); $("mp").value = "········" }
+  }, 700);
 }
 </script>
 </body>
